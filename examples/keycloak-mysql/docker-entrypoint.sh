@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -o errexit -o pipefail -o nounset
 
 export RESET="\e[0m"
@@ -45,21 +45,15 @@ main() {
     local keycloak_certificate_exponent=$(echo "$keycloak_certificate_output" | jq -r '.keys[0].e')
     local keycloak_certificate_modulus=$(echo "$keycloak_certificate_output" | jq -r '.keys[0].n')
 
-    local premier_config="/opt/premier.tml"
+    local premier_config="/opt/premier.toml"
     cp /tmp/premier.toml "${premier_config}"
-    sed -i "s/\$ENV_KEYCLOAK_SIGNATURE_ALGORITHM/${keycloak_certificate_algorithm}/g" ${premier_config}
-    sed -i "s/\$ENV_KEYCLOAK_SIGNATURE_EXPONENT/${keycloak_certificate_exponent}/g" ${premier_config}
-    sed -i "s/\$ENV_KEYCLOAK_SIGNATURE_MODULUS/${keycloak_certificate_modulus}/g" ${premier_config}
+    sed -i "s/\$ENV_KEYCLOAK_CERTIFICATE_ALGORITHM/${keycloak_certificate_algorithm}/g" ${premier_config}
+    sed -i "s/\$ENV_KEYCLOAK_CERTIFICATE_EXPONENT/${keycloak_certificate_exponent}/g" ${premier_config}
+    sed -i "s/\$ENV_KEYCLOAK_CERTIFICATE_MODULUS/${keycloak_certificate_modulus}/g" ${premier_config}
 
-    cat "${premier_config}"
-
-    cd /var/premier
-
-    cargo build
-    # cargo install --path .
-    # premier serve
-
-    tail -F anything
+    # cargo build
+    # ./target/debug/premier --config "${premier_config}" serve
+    premier --config "${premier_config}" serve
 }
 
 main "$@"

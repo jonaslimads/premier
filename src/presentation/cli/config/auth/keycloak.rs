@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use crate::infrastructure::auth::oidc_providers::keycloak::{Keycloak, Signature};
+use crate::infrastructure::auth::oidc_providers::keycloak::{Certificate, Keycloak};
 
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct AuthKeycloakConfig {
@@ -10,11 +10,11 @@ pub struct AuthKeycloakConfig {
     pub realm: String,
     pub admin_username: String,
     pub admin_password: String,
-    pub signature: AuthKeycloakSignatureConfig,
+    pub certificate: AuthKeycloakCertificateConfig,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
-pub struct AuthKeycloakSignatureConfig {
+pub struct AuthKeycloakCertificateConfig {
     pub algorithm: String,
     pub modulus: String,
     pub exponent: String,
@@ -27,14 +27,14 @@ impl AuthKeycloakConfig {
             self.realm.clone(),
             self.admin_username.clone(),
             self.admin_password.clone(),
-            self.signature.into_signature(),
+            self.certificate.into_certificate(),
         )
     }
 }
 
-impl AuthKeycloakSignatureConfig {
-    fn into_signature(&self) -> Signature {
-        Signature::new(
+impl AuthKeycloakCertificateConfig {
+    fn into_certificate(&self) -> Certificate {
+        Certificate::new(
             self.algorithm.clone(),
             self.modulus.clone(),
             self.exponent.clone(),

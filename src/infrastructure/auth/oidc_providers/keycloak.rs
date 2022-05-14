@@ -15,7 +15,7 @@ pub struct Keycloak {
     realm: String,
     admin_username: String,
     admin_password: String,
-    signature: Signature,
+    certificate: Certificate,
     client: Client,
     // admin: Option<KeycloakAdmin>,
     // token: Option<KeycloakAdminToken>,
@@ -23,7 +23,7 @@ pub struct Keycloak {
 
 // TODO introspect from http://localhost:8080/auth/realms/master/protocol/openid-connect/certs
 #[derive(Default)]
-pub struct Signature {
+pub struct Certificate {
     algorithm: String,
     modulus: String,
     exponent: String,
@@ -41,14 +41,14 @@ impl Keycloak {
         realm: String,
         admin_username: String,
         admin_password: String,
-        signature: Signature,
+        certificate: Certificate,
     ) -> Arc<Self> {
         Arc::new(Self {
             url,
             realm,
             admin_username,
             admin_password,
-            signature,
+            certificate,
             client: Client::new(), // token: None,
             ..Default::default()
         })
@@ -172,11 +172,11 @@ impl Keycloak {
 
 impl OidcProvider for Keycloak {
     fn get_modulus(&self) -> &str {
-        self.signature.modulus.as_str()
+        self.certificate.modulus.as_str()
     }
 
     fn get_exponent(&self) -> &str {
-        self.signature.exponent.as_str()
+        self.certificate.exponent.as_str()
     }
 
     fn get_algorithm(&self) -> Algorithm {
@@ -184,7 +184,7 @@ impl OidcProvider for Keycloak {
     }
 }
 
-impl Signature {
+impl Certificate {
     pub fn new(algorithm: String, modulus: String, exponent: String) -> Self {
         Self {
             algorithm,

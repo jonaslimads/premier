@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'marketplace'",
+            "name": "Debug executable 'premier'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=marketplace",
-                    "--package=marketplace"
+                    "--bin=premier",
+                    "--package=premier"
                 ],
                 "filter": {
-                    "name": "marketplace",
+                    "name": "premier",
                     "kind": "bin"
                 }
             },
@@ -25,16 +25,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'marketplace'",
+            "name": "Debug unit tests in executable 'premier'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=marketplace",
-                    "--package=marketplace"
+                    "--bin=premier",
+                    "--package=premier"
                 ],
                 "filter": {
-                    "name": "marketplace",
+                    "name": "premier",
                     "kind": "bin"
                 }
             },
