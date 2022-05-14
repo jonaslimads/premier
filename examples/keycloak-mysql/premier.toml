@@ -1,0 +1,16 @@
+port = 8000
+
+[database.mysql]
+max_connections = 5
+url = "mysql://root:example@mysql:3306/premier"
+
+[auth.keycloak]
+admin_password = "admin"
+admin_username = "keycloak"
+realm = "master"
+url = "0.0.0.0"
+
+[auth.keycloak.signature]
+algorithm = "$ENV_KEYCLOAK_SIGNATURE_ALGORITHM"
+exponent = "$ENV_KEYCLOAK_SIGNATURE_EXPONENT"
+modulus = "$ENV_KEYCLOAK_SIGNATURE_MODULUS"

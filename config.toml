@@ -1,0 +1,16 @@
+port = 10004
+
+[database.mysql]
+max_connections = 5
+url = "mysql://root:admin@127.0.0.1:3305/marketplace"
+
+[auth.keycloak]
+admin_password = "admin"
+admin_username = "keycloak"
+realm = "gerencia-farm"
+url = "192.168.0.2"
+
+[auth.keycloak.signature]
+algorithm = "RS256"
+exponent = "AQAB"
+modulus = "g_g2O1SIW1rC3GHLLqvv3RUAG-JOy7E62iLLQ81cIM-ieiHGOholnvuwc2reHGrWboBSTJgNA87C4yi71J1Xc7IVilPPy2xp-ojo4nFwIMbeambQVdqia-selbAdkxrVImlSSCPnwyNTPFFsu7uafdEASqfNgi8hubSPDWPyMP8o8nw9DPFPqNIZdhtv3ypknzuT0WasgQ5Wl4ShGUHhFkDmOCAT6GqQYjWBbeGB8uGscMOA1iEra_joY39_YvYv5nUJDFwrFiAWQ6sRl3GknfBuPrlHJw94d5PTF1toBtwfFHGsBK8kOzJjF66EBpC3XVicPjrEEE9WFQ6YihCRTQ"

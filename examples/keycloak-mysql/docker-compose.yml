@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+
+  premier:
+    build:
+      context: ../../
+      dockerfile: ./examples/keycloak-mysql/Dockerfile
+    image: premier-example-rust:0.1
+    container_name: premier-example-rust
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "200m"
+        max-file: "15"
+    networks:
+      - premier-example
+    ports:
+      - "8000:8000"
+    depends_on:
+      - keycloak
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=premier
+      - DB_USER=root
+      - DB_PASSWORD=example
+    # volumes:
+    #   - ../../src:/var/premier/src
+    #   - ../../Cargo.toml:/var/premier/Cargo.toml
+    #   - ../../Cargo.lock:/var/premier/Cargo.lock
+
+  keycloak:
+    image: jboss/keycloak:16.1.0
+    container_name: premier-example-keycloak
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "200m"
+        max-file: "15"
+    networks:
+      - premier-example
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    environment:
+      - DB_VENDOR=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=keycloak
+      - DB_USER=root
+      - DB_PASSWORD=example
+
+  mysql:
+    image: mysql:8.0.29-debian
+    container_name: premier-example-mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "200m"
+        max-file: "15"
+    networks:
+      - premier-example
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=example
+      - MYSQL_DATABASE=keycloak
+
+networks:
+  premier-example:
