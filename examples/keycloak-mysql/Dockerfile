@@ -1,19 +1,16 @@
 FROM rust:slim-buster
 
 RUN apt-get update \
-    && apt-get install -y curl jq mariadb-client librust-openssl-sys-dev \
-    && mkdir -p /var/premier/src
+    && apt-get install -y curl jq librust-openssl-sys-dev \
+    && mkdir -p /var/premier
 
 WORKDIR /var/premier
 
-COPY Cargo.toml /var/premier
-
-COPY src/main.rs /var/premier/src
-
-RUN cargo fetch
-
-COPY src/ /var/premier/src
-
+COPY Cargo.toml Cargo.lock ./
+# RUN mkdir src \
+#     && echo "fn main() {}" > src/main.rs \
+#     && cargo build
+COPY src/ ./src
 RUN cargo install --path .
 
 COPY examples/keycloak-mysql/* /tmp/

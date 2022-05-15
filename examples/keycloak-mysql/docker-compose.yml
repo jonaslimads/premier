@@ -25,7 +25,7 @@ services:
       - DB_PORT=3306
       - DB_DATABASE=premier
       - DB_USER=root
-      - DB_PASSWORD=example
+      - DB_PASSWORD=admin
       - RUST_LOG=premier=trace,sqlx=warn,cqrs_es=trace
 
   keycloak:
@@ -48,7 +48,7 @@ services:
       - DB_PORT=3306
       - DB_DATABASE=keycloak
       - DB_USER=root
-      - DB_PASSWORD=example
+      - DB_PASSWORD=admin
 
   mysql:
     image: mysql:8.0.29-debian
@@ -64,9 +64,10 @@ services:
       - premier-example
     ports:
       - "3306:3306"
+    volumes:
+      - ./mysql/credentials.cnf:/tmp/credentials.cnf
     environment:
-      - MYSQL_ROOT_PASSWORD=example
-      - MYSQL_DATABASE=keycloak
+      - MYSQL_ROOT_PASSWORD=admin
 
 networks:
   premier-example:

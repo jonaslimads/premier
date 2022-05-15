@@ -1,1 +1,5 @@
-https://stackoverflow.com/questions/42130132/can-cargo-download-and-build-dependencies-without-also-building-the-application
+# Premier
+
+## Examples
+
+Visit [./examples/keycloak-mysql](examples).

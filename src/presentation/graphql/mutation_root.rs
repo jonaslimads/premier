@@ -77,7 +77,7 @@ macro_rules! mutation {
 
 macro_rules! mutation_root {
     ($($aggregate_type:ident => $command_type:ident),*) => {
-        paste!{
+        paste! {
             #[Object]
             impl MutationRoot {
                 async fn add_order(

@@ -2,13 +2,13 @@ port = 8000
 
 [database.mysql]
 max_connections = 5
-url = "mysql://root:example@mysql:3306/premier"
+url = "mysql://root:admin@mysql:3306/premier"
 
 [auth.keycloak]
 admin_password = "admin"
 admin_username = "keycloak"
 realm = "master"
-url = "0.0.0.0"
+url = "0.0.0.0:8080"
 
 [auth.keycloak.certificate]
 algorithm = "$ENV_KEYCLOAK_CERTIFICATE_ALGORITHM"

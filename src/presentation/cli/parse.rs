@@ -26,7 +26,7 @@ macro_rules! match_commands {
         let vendor_cqrs = $vendor_cqrs;
         match $command.as_str() {
             $(stringify!($command_type) => {
-                paste!{
+                paste! {
                     let payload = $payload.to_string();
                     let mut command: [<$command_type Command>] = serde_json::from_str(&payload)?;
                     command.id = $presentation_service.prepare_aggregate_id(command.id.clone(), stringify!($aggregate_type), stringify!($command_type)).await?;

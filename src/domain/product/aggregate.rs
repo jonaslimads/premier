@@ -3,9 +3,8 @@ use cqrs_es::Aggregate;
 
 use crate::application::product::commands::ProductCommand;
 use crate::application::product::services::ProductServices;
-use crate::domain::product::{ProductError, ProductEvent};
-
 use crate::domain::product::entities::{Product, Vendor};
+use crate::domain::product::{ProductError, ProductEvent};
 
 #[async_trait]
 impl Aggregate for Product {
