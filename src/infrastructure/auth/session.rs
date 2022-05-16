@@ -28,7 +28,7 @@ pub struct Session {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Claims {
     sub: String,
-    groups: Vec<String>,
+    // groups: Option<Vec<String>>,
 }
 
 impl SessionIntent {
@@ -94,11 +94,11 @@ impl SessionIntent {
     }
 }
 
-impl Session {
-    // pub fn is_anonymous(&self) -> bool {
-    //     self.user_id == "".to_string()
-    // }
-}
+// impl Session {
+//     pub fn is_anonymous(&self) -> bool {
+//         self.user_id == "".to_string()
+//     }
+// }
 
 pub fn invalid_token_error() -> InfrastructureError {
     InfrastructureError::from(JwtError::Error::from(JwtError::ErrorKind::InvalidToken))

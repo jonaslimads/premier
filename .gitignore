@@ -11,3 +11,6 @@ Cargo.lock
 **/*.rs.bk
 async-graphql/
 sqlx/
+
+premier.toml
+ideas.txt

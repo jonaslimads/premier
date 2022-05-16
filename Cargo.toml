@@ -12,7 +12,8 @@ async-graphql-warp = "3.0.38"
 async-trait = "0.1.53"
 chrono = {version = "0.4.19", features = ["serde"]}
 clap = {version = "3.1.15", features = ["derive"]}
-cqrs-es = "0.4.0"
+# cqrs-es = "0.4.0"
+cqrs-es = {path = "./cqrs-es"}
 dotenv = "0.15.0"
 env_logger = "0.9.0"
 futures = "0.3.21"
@@ -21,7 +22,8 @@ itertools = "0.10.3"
 jsonwebtoken = "8.1.0"
 keycloak = "18.0.0"
 log = "0.4.16"
-mysql-es = "0.4.0"
+# mysql-es = "0.4.0"
+mysql-es = {path = "./mysql-es"}
 paste = "1.0.7"
 reqwest = "0.11.10"
 serde = {version = "1.0.136", features = ["derive"]}
@@ -32,3 +34,6 @@ tokio = {version = "1.18.0", features = ["full"]}
 toml = "0.5.9"
 uuid = {version = "0.8.2", features = ["serde", "v4"]}
 warp = "0.3.2"
+
+[workspace]
+members = ["cqrs-es", "mysql-es"]

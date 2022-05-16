@@ -90,6 +90,6 @@ impl DomainEvent for ProductEvent {
     }
 
     fn event_version(&self) -> String {
-        "1.0".to_string()
+        "0.1.0".to_string()
     }
 }

@@ -16,8 +16,7 @@ MySQL, Keycloak and Rust containers will be built and run.
 
 ## Premier
 
-Premier playground can be visited at http://localhost:8000/playground
-The schema is available at http://localhost:8000/schema.sdl
+The GraphQL playground can be visited at http://localhost:8000/playground and the schema at http://localhost:8000/schema.sdl.
 
 ## Keycloak
 

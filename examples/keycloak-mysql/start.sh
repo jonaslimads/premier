@@ -39,6 +39,8 @@ main() {
     fi
 
     start_keycloak
+
+    # docker-compose up premier
 }
 
 start_keycloak() {
@@ -65,7 +67,7 @@ start_keycloak() {
         echo -e "${YELLOW}Keycloak${RESET} migration already applied"
     fi
 
-    docker-compose up premier
+    docker-compose up -d keycloak
 }
 
 mysql_admin_wrapper() {

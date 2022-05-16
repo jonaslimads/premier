@@ -577,7 +577,7 @@ where
     A: Aggregate,
 {
     let repo = MysqlEventRepository::new(pool).with_tables(events_table, "snapshot");
-    let store = PersistedEventStore::new_event_store(repo);
+    let store = PersistedEventStore::new_event_store(repo); //.with_upcasters(get_upcasters());
     CqrsFramework::new(store, query_processor, services)
 }
 
@@ -588,3 +588,33 @@ pub async fn start_connection_pool(database_uri: &str, max_connections: u32) -> 
         .await
         .expect("unable to connect to database")
 }
+
+// test upcast
+// use cqrs_es::persist::{EventUpcaster, SemanticVersionEventUpcaster};
+
+// fn get_upcasters() -> Vec<Box<dyn EventUpcaster>> {
+//     vec![
+//         Box::new(SemanticVersionEventUpcaster::new(
+//             "VendorArchived",
+//             "0.1.1",
+//             Box::new(|mut event| match event.get_mut("VendorArchived").unwrap() {
+//                 Value::Object(object) => {
+//                     object.insert("test".to_string(), Value::Bool(true));
+//                     event
+//                 }
+//                 _ => panic!("not the expected object"),
+//             }),
+//         )),
+//         Box::new(SemanticVersionEventUpcaster::new(
+//             "VendorArchived",
+//             "0.1.2",
+//             Box::new(|mut event| match event.get_mut("VendorArchived").unwrap() {
+//                 Value::Object(object) => {
+//                     object.insert("test2".to_string(), Value::Bool(false));
+//                     event
+//                 }
+//                 _ => panic!("not the expected object"),
+//             }),
+//         )),
+//     ]
+// }

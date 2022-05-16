@@ -21,7 +21,7 @@ pub struct Keycloak {
     // token: Option<KeycloakAdminToken>,
 }
 
-// TODO introspect from http://localhost:8080/auth/realms/master/protocol/openid-connect/certs
+// TODO introspect from http://localhost:8080/auth/realms/premier/protocol/openid-connect/certs
 #[derive(Default)]
 pub struct Certificate {
     algorithm: String,
