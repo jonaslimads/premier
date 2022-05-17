@@ -40,7 +40,7 @@ pub async fn vendor_cqrs(
     let services = VendorServices::new(Box::new(VendorApi));
 
     (
-        Arc::new(cqrs(pool, "vendor_event", queries, services)),
+        Arc::new(cqrs(pool, "vendor_event", queries, services).await),
         vendor_products_repository,
     )
 }
@@ -51,7 +51,9 @@ pub async fn product_cqrs(pool: ConnectionPool) -> (Arc<Cqrs<Product>>,) {
     let queries: Vec<Box<dyn Query<Product>>> = vec![Box::new(simple_logging_query)];
     let services = ProductServices {};
 
-    (Arc::new(cqrs(pool, "product_event", queries, services)),)
+    (Arc::new(
+        cqrs(pool, "product_event", queries, services).await,
+    ),)
 }
 
 pub async fn order_cqrs(pool: ConnectionPool) -> (Arc<Cqrs<Order>>,) {
@@ -60,5 +62,5 @@ pub async fn order_cqrs(pool: ConnectionPool) -> (Arc<Cqrs<Order>>,) {
     let queries: Vec<Box<dyn Query<Order>>> = vec![];
     let services = OrderServices {};
 
-    (Arc::new(cqrs(pool, "order_event", queries, services)),)
+    (Arc::new(cqrs(pool, "order_event", queries, services).await),)
 }

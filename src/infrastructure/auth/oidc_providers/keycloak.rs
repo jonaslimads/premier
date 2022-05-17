@@ -1,4 +1,5 @@
-use jsonwebtoken::{decode, errors as JwtError, Algorithm};
+// use jsonwebtoken::{decode, errors as JwtError, Algorithm};
+use jsonwebtoken::Algorithm;
 use keycloak::{types::*, KeycloakAdmin, KeycloakAdminToken};
 use reqwest::Client;
 use serde_json::Value;

@@ -2,6 +2,8 @@
 
 // https://github.com/serverlesstechnology/mysql-es/blob/master/src/event_repository.rs
 
+use std::collections::HashMap;
+
 use async_trait::async_trait;
 use cqrs_es::persist::{
     PersistedEventRepository, PersistenceError, SerializedEvent, SerializedSnapshot,
@@ -10,7 +12,7 @@ use cqrs_es::Aggregate;
 use futures::TryStreamExt;
 use serde_json::Value;
 use sqlx::mysql::MySqlRow;
-use sqlx::{MySql, Pool, Row, Transaction};
+use sqlx::{Execute, MySql, Pool, QueryBuilder, Row, Transaction};
 
 const DEFAULT_EVENT_TABLE: &str = "events";
 const DEFAULT_SNAPSHOT_TABLE: &str = "snapshots";
@@ -42,7 +44,7 @@ impl PersistedEventRepository for MysqlEventRepository {
         last_sequence: usize,
     ) -> Result<Vec<SerializedEvent>, PersistenceError> {
         let query = format!(
-            "SELECT CAST(aggregate_type as CHAR) as aggregate_type, CAST(aggregate_id as CHAR) as aggregate_id, sequence, event_type, event_version, payload, metadata
+            "SELECT CAST(aggregate_type AS CHAR) as aggregate_type, CAST(aggregate_id AS CHAR) as aggregate_id, sequence, event_type, event_version, payload, metadata
                                 FROM {}
                                 WHERE aggregate_type = ? AND aggregate_id = ?
                                   AND sequence > {}
@@ -61,6 +63,21 @@ impl PersistedEventRepository for MysqlEventRepository {
         //     result.push(self.deser_event(row)?);
         // }
         // Ok(result)
+    }
+
+    async fn get_multiple_aggregate_events<A: Aggregate>(
+        &self,
+        aggregate_ids: Vec<&str>,
+    ) -> Result<HashMap<String, Vec<SerializedEvent>>, PersistenceError> {
+        let query = format!(
+            "SELECT CAST(aggregate_type AS CHAR) AS aggregate_type, CAST(aggregate_id AS CHAR) AS aggregate_id,
+                sequence, event_type, event_version, payload, metadata
+            FROM {}
+            WHERE aggregate_type = {} AND aggregate_id IN ({{}})
+            ORDER BY CAST(aggregate_id AS UNSIGNED), sequence",&self.event_table, A::aggregate_type());
+
+        self.select_multiple_aggregate_events::<A>(aggregate_ids, &query)
+            .await
     }
 
     async fn get_snapshot<A: Aggregate>(
@@ -121,6 +138,37 @@ impl MysqlEventRepository {
         }
         Ok(result)
     }
+
+    async fn select_multiple_aggregate_events<A: Aggregate>(
+        &self,
+        aggregate_ids: Vec<&str>,
+        query: &str,
+    ) -> Result<HashMap<String, Vec<SerializedEvent>>, PersistenceError> {
+        let query = query.to_string();
+        let parts: Vec<&str> = query.split("{}").collect();
+        let mut query_builder: QueryBuilder<MySql> = QueryBuilder::new(parts[0]);
+
+        let mut separated = query_builder.separated(", ");
+        for aggregate_id in aggregate_ids {
+            separated.push(aggregate_id.to_string());
+        }
+        if parts.len() > 1 {
+            separated.push_unseparated(parts[1]);
+        }
+
+        let mut rows = query_builder.build().fetch(&self.pool);
+        let mut result: HashMap<String, Vec<SerializedEvent>> = HashMap::new();
+        while let Some(row) = rows.try_next().await.map_err(MysqlAggregateError::from)? {
+            let event = self.deser_event(row)?;
+            if let Some(events) = result.get_mut(&event.aggregate_id) {
+                events.push(event);
+            } else {
+                result.insert(event.aggregate_id.clone(), vec![event]);
+            }
+        }
+
+        Ok(result)
+    }
 }
 
 impl MysqlEventRepository {
@@ -161,7 +209,7 @@ impl MysqlEventRepository {
             event_table: events_table.to_string(),
             insert_event: format!("INSERT INTO {} (aggregate_type, aggregate_id, sequence, event_type, event_version, payload, metadata)
                                        VALUES (?, ?, ?, ?, ?, ?, ?)", events_table),
-            select_events: format!("SELECT CAST(aggregate_type as CHAR) as aggregate_type, CAST(aggregate_id as CHAR) as aggregate_id, sequence, event_type, event_version, payload, metadata
+            select_events: format!("SELECT CAST(aggregate_type AS CHAR) as aggregate_type, CAST(aggregate_id AS CHAR) as aggregate_id, sequence, event_type, event_version, payload, metadata
                                         FROM {}
                                         WHERE aggregate_type = ?
                                           AND aggregate_id = ? ORDER BY sequence", events_table),
@@ -170,7 +218,7 @@ impl MysqlEventRepository {
             update_snapshot: format!("UPDATE {}
                                            SET last_sequence= ? , payload= ?, current_snapshot= ?
                                            WHERE aggregate_type= ? AND aggregate_id= ? AND current_snapshot= ?", snapshots_table),
-            select_snapshot: format!("SELECT CAST(aggregate_type as CHAR) as aggregate_type, CAST(aggregate_id as CHAR) as aggregate_id, last_sequence, current_snapshot, payload
+            select_snapshot: format!("SELECT CAST(aggregate_type AS CHAR) as aggregate_type, CAST(aggregate_id AS CHAR) as aggregate_id, last_sequence, current_snapshot, payload
                                         FROM {}
                                         WHERE aggregate_type = ? AND aggregate_id = ?", snapshots_table),
         }
@@ -567,7 +615,7 @@ use cqrs_es::Query;
 pub use mysql_es::MysqlViewRepository;
 pub use sqlx::{mysql::MySqlPoolOptions, MySqlPool};
 
-pub fn cqrs<A>(
+pub async fn cqrs<A>(
     pool: Pool<MySql>,
     events_table: &str,
     query_processor: Vec<Box<dyn Query<A>>>,
@@ -577,6 +625,12 @@ where
     A: Aggregate,
 {
     let repo = MysqlEventRepository::new(pool).with_tables(events_table, "snapshot");
+    // log::warn!(
+    //     "{:?}",
+    //     repo.get_multiple_aggregate_events::<A>(vec!["7312191", "332807312191"])
+    //         .await
+    //         .unwrap()
+    // );
     let store = PersistedEventStore::new_event_store(repo); //.with_upcasters(get_upcasters());
     CqrsFramework::new(store, query_processor, services)
 }
