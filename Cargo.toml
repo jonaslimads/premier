@@ -13,7 +13,7 @@ async-trait = "0.1.53"
 chrono = {version = "0.4.19", features = ["serde"]}
 clap = {version = "3.1.15", features = ["derive"]}
 # cqrs-es = "0.4.0"
-cqrs-es = {path = "./cqrs-es"}
+cqrs-es = {path = "./cqrs"}
 dotenv = "0.15.0"
 env_logger = "0.9.0"
 futures = "0.3.21"
@@ -36,4 +36,4 @@ uuid = {version = "0.8.2", features = ["serde", "v4"]}
 warp = "0.3.2"
 
 [workspace]
-members = ["cqrs-es", "mysql-es"]
+members = ["cqrs", "mysql-es"]

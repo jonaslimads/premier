@@ -38,12 +38,17 @@ main() {
         echo "Premier migration already applied"
     fi
 
-    start_keycloak
+    migrate_keycloak
 
-    # docker-compose up premier
+    if [[ $# -eq 0 ]] ; then
+        docker-compose up -d keycloak
+        docker-compose up premier
+    else
+        docker-compose up keycloak
+    fi
 }
 
-start_keycloak() {
+migrate_keycloak() {
     while ! mysql_wrapper -se "CREATE DATABASE IF NOT EXISTS keycloak"; do
         sleep 1
     done
@@ -66,8 +71,6 @@ start_keycloak() {
     else
         echo -e "${YELLOW}Keycloak${RESET} migration already applied"
     fi
-
-    docker-compose up -d keycloak
 }
 
 mysql_admin_wrapper() {

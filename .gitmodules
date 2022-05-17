@@ -1,0 +1,6 @@
+[submodule "cqrs"]
+	path = cqrs
+	url = https://github.com/jonaslimads/cqrs/
+[submodule "mysql-es"]
+	path = mysql-es
+	url = https://github.com/jonaslimads/mysql-es/

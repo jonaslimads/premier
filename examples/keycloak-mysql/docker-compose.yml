@@ -6,8 +6,8 @@ services:
     build:
       context: ../../
       dockerfile: ./examples/keycloak-mysql/Dockerfile
-    image: premier-example-rust:0.1
-    container_name: premier-example-rust
+    image: premier-example:0.1
+    container_name: premier-example
     restart: unless-stopped
     logging:
       driver: json-file
