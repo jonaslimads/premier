@@ -25,6 +25,6 @@ impl DomainEvent for VendorEvent {
     }
 
     fn event_version(&self) -> String {
-        "0.1.2".to_string()
+        "0.1.0".to_string()
     }
 }

@@ -163,7 +163,7 @@ BEGIN
     SELECT sequence INTO global_sequence FROM global_sequence WHERE node_id = '1' FOR UPDATE;
     UPDATE global_sequence SET sequence = sequence + 1 WHERE node_id = '1';
 
-    SET NEW.metadata = JSON_SET(NEW.metadata, '$.s', CAST(global_sequence AS CHAR));
+    SET NEW.metadata = JSO  N_SET(NEW.metadata, '$.s', CAST(global_sequence AS CHAR));
 END//
 
 DELIMITER ;
@@ -174,6 +174,37 @@ DELIMITER ;
 -- -----------------------------------------
 
 CREATE TABLE vendor_product_view (
+    view_id VARCHAR(255) NOT NULL,
+    version BIGINT CHECK (version >= 0),
+    payload JSON NOT NULL,
+    CONSTRAINT PRIMARY KEY (view_id)
+);
+
+-- -----------------------------------
+-- -------------- TEST  --------------
+-- -----------------------------------
+
+CREATE TABLE events (
+    aggregate_type varchar(255)                 NOT NULL,
+    aggregate_id   varchar(255)                 NOT NULL,
+    sequence       bigint CHECK (sequence >= 0) NOT NULL,
+    event_type     text                         NOT NULL,
+    event_version  text                         NOT NULL,
+    payload        json                         NOT NULL,
+    metadata       json                         NOT NULL,
+    CONSTRAINT events_pk PRIMARY KEY (aggregate_type, aggregate_id, sequence)
+);
+
+CREATE TABLE snapshots (
+    aggregate_type   varchar(255)                         NOT NULL,
+    aggregate_id     varchar(255)                         NOT NULL,
+    last_sequence    bigint CHECK (last_sequence >= 0)    NOT NULL,
+    current_snapshot bigint CHECK (current_snapshot >= 0) NOT NULL,
+    payload          json                                 NOT NULL,
+    CONSTRAINT snapshots_pk PRIMARY KEY (aggregate_type, aggregate_id)
+);
+
+CREATE TABLE test_view (
     view_id VARCHAR(255) NOT NULL,
     version BIGINT CHECK (version >= 0),
     payload JSON NOT NULL,
