@@ -17,7 +17,7 @@ impl Aggregate for Product {
     type Services = ProductServices;
 
     fn aggregate_type() -> String {
-        2.to_string()
+        "".to_string()
     }
 
     async fn handle(

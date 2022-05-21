@@ -16,7 +16,7 @@ impl Aggregate for Vendor {
     type Services = VendorServices;
 
     fn aggregate_type() -> String {
-        1.to_string()
+        "".to_string()
     }
 
     async fn handle(

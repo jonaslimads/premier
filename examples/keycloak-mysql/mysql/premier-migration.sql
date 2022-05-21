@@ -3,43 +3,85 @@
 -- ------------------------------------
 
 CREATE TABLE `order_event` (
-    aggregate_type TINYINT NOT NULL,
     aggregate_id BIGINT UNSIGNED NOT NULL,
     sequence BIGINT CHECK (sequence >= 0),
     event_type TEXT NOT NULL,
-    event_version TEXT NOT NULL,
+    event_version MEDIUMINT NOT NULL,
     payload JSON NOT NULL,
     metadata JSON NOT NULL,
-    CONSTRAINT PRIMARY KEY (aggregate_type, aggregate_id, sequence),
+    CONSTRAINT PRIMARY KEY (aggregate_id, sequence),
     KEY (aggregate_id)
 );
 
 CREATE TABLE `product_event` (
-    aggregate_type TINYINT NOT NULL,
     aggregate_id BIGINT UNSIGNED NOT NULL,
     sequence BIGINT CHECK (sequence >= 0),
     event_type TEXT NOT NULL,
-    event_version TEXT NOT NULL,
+    event_version MEDIUMINT NOT NULL,
     payload JSON NOT NULL,
     metadata JSON NOT NULL,
-    CONSTRAINT PRIMARY KEY (aggregate_type, aggregate_id, sequence),
+    CONSTRAINT PRIMARY KEY (aggregate_id, sequence),
     KEY (aggregate_id)
 );
 
 CREATE TABLE `vendor_event` (
-    aggregate_type TINYINT NOT NULL,
     aggregate_id BIGINT UNSIGNED NOT NULL,
     sequence BIGINT CHECK (sequence >= 0),
     event_type TEXT NOT NULL,
-    event_version TEXT NOT NULL,
+    event_version MEDIUMINT NOT NULL,
     payload JSON NOT NULL,
     metadata JSON NOT NULL,
-    CONSTRAINT PRIMARY KEY (aggregate_type, aggregate_id, sequence),
+    CONSTRAINT PRIMARY KEY (aggregate_id, sequence),
     KEY (aggregate_id)
 );
 
 
 DELIMITER //
+
+CREATE FUNCTION `CONVERT_VERSION_TO_INT`(`version` TEXT) RETURNS INT UNSIGNED
+DETERMINISTIC
+BEGIN
+	DECLARE parts INT;
+	DECLARE major TEXT;
+	DECLARE minor TEXT;
+	DECLARE patch TEXT;
+
+	SET parts = LENGTH(version) - LENGTH(REPLACE(version, '.', ''));
+	SET major = SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', 1), '.', -1);
+	SET minor = SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', 2), '.', -1);
+	SET patch = SUBSTRING_INDEX(SUBSTRING_INDEX(version, '.', 3), '.', -1);
+
+	IF parts = 2 THEN
+		RETURN major * 10000 + minor * 100 + patch;
+	ELSEIF parts = 1 THEN
+		RETURN major * 10000 + minor * 100;
+	ELSE
+		RETURN major * 10000;
+    END IF;
+END//
+
+
+CREATE FUNCTION `CONVERT_VERSION_TO_TEXT`(`version` INT) RETURNS TEXT
+DETERMINISTIC
+BEGIN
+	DECLARE major TEXT;
+	DECLARE minor TEXT;
+	DECLARE patch TEXT;
+
+	IF version < 99 THEN
+		RETURN CONCAT(version, '');
+	ELSEIF version < 9999 THEN
+		SET major = version DIV 100;
+		SET minor = version - major * 100;
+		RETURN CONCAT(major, '.', minor);
+	ELSE
+		SET major = version DIV 10000;
+		SET minor = (version - major * 10000) DIV 100;
+		SET patch = version - major * 10000 - minor * 100;
+		RETURN CONCAT(major, '.', minor, '.', patch);
+	END IF;
+END//
+
 
 CREATE FUNCTION `GET_RANDOM_ORDER_EVENT_AGGREGATE_ID`(`range_start` BIGINT UNSIGNED, `range_end` BIGINT UNSIGNED) RETURNS BIGINT(20) UNSIGNED
 READS SQL DATA
@@ -163,7 +205,7 @@ BEGIN
     SELECT sequence INTO global_sequence FROM global_sequence WHERE node_id = '1' FOR UPDATE;
     UPDATE global_sequence SET sequence = sequence + 1 WHERE node_id = '1';
 
-    SET NEW.metadata = JSO  N_SET(NEW.metadata, '$.s', CAST(global_sequence AS CHAR));
+    SET NEW.metadata = JSON_SET(NEW.metadata, '$.s', CAST(global_sequence AS CHAR));
 END//
 
 DELIMITER ;

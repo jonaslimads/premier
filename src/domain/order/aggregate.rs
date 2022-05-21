@@ -18,7 +18,7 @@ impl Aggregate for Order {
     type Services = OrderServices;
 
     fn aggregate_type() -> String {
-        3.to_string()
+        "".to_string()
     }
 
     async fn handle(
