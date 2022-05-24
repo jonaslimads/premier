@@ -45,7 +45,7 @@ macro_rules! match_commands {
 pub async fn parse() -> Result<Option<String>> {
     let cli = Cli::parse();
     let config = cli.parse_config();
-    log::trace!("{:?}", config);
+    // log::trace!("{:?}", config);
 
     let pool = config
         .get_database_or_error()?
@@ -60,7 +60,7 @@ pub async fn parse() -> Result<Option<String>> {
 
     let (order_cqrs,) = startup::order_cqrs(pool.clone()).await;
     let (product_cqrs,) = startup::product_cqrs(pool.clone()).await;
-    let (vendor_cqrs, _vendor_products_query) = startup::vendor_cqrs(pool.clone()).await;
+    let (vendor_cqrs, _vendor_products_query, queries) = startup::vendor_cqrs(pool.clone()).await;
 
     match &cli.mode {
         Mode::Serve => {
@@ -72,6 +72,9 @@ pub async fn parse() -> Result<Option<String>> {
                 vendor_cqrs.clone(),
             )
             .await;
+        }
+        Mode::Replay { aggregate } => {
+            log::info!("Replay {} events", aggregate);
         }
         Mode::Command { command, payload } => {
             log::info!("command {}, payload {:?}", command, payload);

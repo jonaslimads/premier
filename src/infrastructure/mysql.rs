@@ -1,62 +1,77 @@
-use cqrs_es::persist::{PersistedEventRepository, PersistedEventStore};
-use cqrs_es::{Aggregate, CqrsFramework};
+use cqrs_es::persist::PersistedEventStore;
+use cqrs_es::{Aggregate, CqrsFramework, Query};
 use mysql_es::MysqlEventRepository;
-pub type MysqlCqrs<A> = CqrsFramework<A, PersistedEventStore<MysqlEventRepository, A>>;
-
-//
-use cqrs_es::Query;
 pub use mysql_es::MysqlViewRepository;
 pub use sqlx::mysql::MySqlPoolOptions;
 pub use sqlx::MySqlPool;
 
+pub type MysqlCqrs<A> = CqrsFramework<A, PersistedEventStore<MysqlEventRepository, A>>;
+
 pub async fn cqrs<A>(
     pool: MySqlPool,
     events_table: &str,
-    query_processor: Vec<Box<dyn Query<A>>>,
+    queries: Vec<Box<dyn Query<A>>>,
     services: A::Services,
 ) -> MysqlCqrs<A>
 where
     A: Aggregate,
 {
     let snapshots_table = "snapshot";
+    let event_select_fields = "
+        '' AS aggregate_type,
+        CAST(aggregate_id AS CHAR) AS aggregate_id,
+        sequence,
+        event_type,
+        CONVERT_VERSION_TO_TEXT(event_version) AS event_version,
+        payload,
+        metadata
+    ";
     let repo = MysqlEventRepository {
         pool,
         event_table: events_table.to_string(),
-        insert_event: format!("INSERT INTO {} (aggregate_id, sequence, event_type, event_version, payload, metadata)
-                                    VALUES (?, ?, ?, CONVERT_VERSION_TO_INT(?), ?, ?)", events_table),
-        select_events: format!("SELECT '' AS aggregate_type, CAST(aggregate_id AS CHAR) AS aggregate_id, sequence, event_type, CONVERT_VERSION_TO_TEXT(event_version) AS event_version, payload, metadata
-                                    FROM {}
-                                    WHERE '' = ?
-                                        AND aggregate_id = ? ORDER BY sequence", events_table),
-        select_last_events: format!("SELECT '' AS aggregate_type, CAST(aggregate_id AS CHAR) AS aggregate_id, sequence, event_type, event_version, payload, metadata
-                                    FROM {}
-                                    WHERE '' = ?
-                                        AND aggregate_id = ?
-                                        AND sequence > ?
-                                    ORDER BY sequence", events_table),
-        select_multiple_aggregate_events: format!("SELECT '' AS aggregate_type, CAST(aggregate_id AS CHAR) AS aggregate_id, sequence, event_type, event_version, payload, metadata
-                                                    FROM {}
-                                                    WHERE '' = ?
-                                                        AND aggregate_id IN ?
-                                                    ORDER BY CAST(aggregate_id AS UNSIGNED), sequence", events_table),
-
-        insert_snapshot: format!("INSERT INTO {} (aggregate_id, last_sequence, current_snapshot, payload)
-                                    VALUES (?, ?, ?, ?)", snapshots_table),
-        update_snapshot: format!("UPDATE {}
-                                    SET last_sequence= ? , payload= ?, current_snapshot= ?
-                                    WHERE '' = ? AND aggregate_id= ? AND current_snapshot= ?", snapshots_table),
-        select_snapshot: format!("SELECT '' AS aggregate_type, CAST(aggregate_id AS CHAR) AS aggregate_id, last_sequence, current_snapshot, payload
-                                    FROM {}
-                                    WHERE '' = ? AND aggregate_id = ?", snapshots_table),
+        insert_event:
+            format!("INSERT INTO {} (aggregate_id, sequence, event_type, event_version, payload, metadata)
+                    VALUES (?, ?, ?, CONVERT_VERSION_TO_INT(?), ?, ?)", events_table),
+        select_events:
+            format!("SELECT {}
+                    FROM {}
+                    WHERE '' = ? AND aggregate_id = ?
+                    ORDER BY sequence", event_select_fields, events_table),
+        select_last_events:
+            format!("SELECT {}
+                    FROM {}
+                    WHERE '' = ? AND aggregate_id = ? AND sequence > ?
+                    ORDER BY sequence", event_select_fields, events_table),
+        select_multiple_aggregate_events:
+            format!("SELECT {}
+                    FROM {}
+                    WHERE '' = ? AND aggregate_id IN ?
+                    ORDER BY CAST(aggregate_id AS UNSIGNED), sequence", event_select_fields, events_table),
+        select_all_aggregate_events:
+            format!("SELECT {}
+                    FROM {}
+                    WHERE '' = ?
+                    ORDER BY CAST(aggregate_id AS UNSIGNED), sequence", event_select_fields, events_table),
+        insert_snapshot:
+            format!("INSERT INTO {} (aggregate_id, last_sequence, current_snapshot, payload)
+                    VALUES (?, ?, ?, ?)", snapshots_table),
+        update_snapshot:
+            format!("UPDATE {}
+                    SET last_sequence= ? , payload= ?, current_snapshot= ?
+                    WHERE '' = ? AND aggregate_id= ? AND current_snapshot= ?", snapshots_table),
+        select_snapshot:
+            format!("SELECT '' AS aggregate_type, CAST(aggregate_id AS CHAR) AS aggregate_id, last_sequence, current_snapshot, payload
+                    FROM {}
+                    WHERE '' = ? AND aggregate_id = ?", snapshots_table),
     };
-    log::warn!(
-        "{:?}",
-        repo.get_multiple_aggregate_events::<A>(vec!["332807312192", "332807312191"])
-            .await
-            .unwrap()
-    );
+    // log::warn!(
+    //     "{:?}",
+    //     repo.get_multiple_aggregate_events::<A>(vec!["332807312192", "332807312191"])
+    //         .await
+    //         .unwrap()
+    // );
     let store = PersistedEventStore::new_event_store(repo); //.with_upcasters(get_upcasters());
-    CqrsFramework::new(store, query_processor, services)
+    CqrsFramework::new(store, queries, services)
 }
 
 pub async fn start_connection_pool(database_uri: &str, max_connections: u32) -> sqlx::MySqlPool {

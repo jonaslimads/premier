@@ -21,6 +21,7 @@ pub struct Cli {
 #[derive(Debug, Subcommand)]
 pub enum Mode {
     Serve,
+    Replay { aggregate: String },
     Command { command: String, payload: Value },
     Query { query: String, id: String },
 }

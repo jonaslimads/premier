@@ -13,6 +13,13 @@ CREATE TABLE `order_event` (
     KEY (aggregate_id)
 );
 
+CREATE TABLE `order_event_pending_replay` (
+    aggregate_id BIGINT UNSIGNED NOT NULL,
+    sequence BIGINT CHECK (sequence >= 0),
+    CONSTRAINT PRIMARY KEY (aggregate_id),
+    CONSTRAINT FOREIGN KEY (aggregate_id, sequence) REFERENCES order_event (aggregate_id, sequence)
+);
+
 CREATE TABLE `product_event` (
     aggregate_id BIGINT UNSIGNED NOT NULL,
     sequence BIGINT CHECK (sequence >= 0),
@@ -24,6 +31,13 @@ CREATE TABLE `product_event` (
     KEY (aggregate_id)
 );
 
+CREATE TABLE `product_event_pending_replay` (
+    aggregate_id BIGINT UNSIGNED NOT NULL,
+    sequence BIGINT CHECK (sequence >= 0),
+    CONSTRAINT PRIMARY KEY (aggregate_id),
+    CONSTRAINT FOREIGN KEY (aggregate_id, sequence) REFERENCES product_event (aggregate_id, sequence)
+);
+
 CREATE TABLE `vendor_event` (
     aggregate_id BIGINT UNSIGNED NOT NULL,
     sequence BIGINT CHECK (sequence >= 0),
@@ -33,6 +47,13 @@ CREATE TABLE `vendor_event` (
     metadata JSON NOT NULL,
     CONSTRAINT PRIMARY KEY (aggregate_id, sequence),
     KEY (aggregate_id)
+);
+
+CREATE TABLE `vendor_event_pending_replay` (
+    aggregate_id BIGINT UNSIGNED NOT NULL,
+    sequence BIGINT CHECK (sequence >= 0),
+    CONSTRAINT PRIMARY KEY (aggregate_id),
+    CONSTRAINT FOREIGN KEY (aggregate_id, sequence) REFERENCES vendor_event (aggregate_id, sequence)
 );
 
 
