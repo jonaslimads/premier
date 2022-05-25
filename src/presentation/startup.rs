@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use cqrs_es::Query;
+use cqrs_es::{Query, TrackingEventProcessor};
 
 use crate::infrastructure::{cqrs, ConnectionPool, Cqrs, ViewRepository};
 
@@ -24,7 +24,6 @@ pub async fn vendor_cqrs(
 ) -> (
     Arc<Cqrs<Vendor>>,
     Arc<ViewRepository<VendorProductsView, Vendor>>,
-    Vec<Box<dyn Query<Vendor>>>,
 ) {
     let simple_logging_query = SimpleLoggingQuery {};
 
@@ -43,12 +42,14 @@ pub async fn vendor_cqrs(
     let mut cloned_vendor_products_query =
         VendorProductsQuery::new(vendor_products_repository.clone());
     cloned_vendor_products_query.use_error_handler(Box::new(|error| log::error!("{}", error)));
-    let queries2: Vec<Box<dyn Query<Vendor>>> = vec![Box::new(cloned_vendor_products_query)];
 
     let framework = cqrs(pool, "vendor_event", queries, services).await;
-    // let framework = framework.with_tracking_event_processor();
+    let framework =
+        framework.with_tracking_event_processor(TrackingEventProcessor::new(vec![Box::new(
+            cloned_vendor_products_query,
+        )]));
 
-    (Arc::new(framework), vendor_products_repository, queries2)
+    (Arc::new(framework), vendor_products_repository)
 }
 
 pub async fn product_cqrs(pool: ConnectionPool) -> (Arc<Cqrs<Product>>,) {
