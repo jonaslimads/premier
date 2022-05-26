@@ -12,26 +12,48 @@ use crate::application::product::queries::SimpleLoggingQuery as ProductSimpleLog
 use crate::application::product::services::ProductServices;
 use crate::domain::product::Product;
 
-use crate::application::vendor::queries::{
-    SimpleLoggingQuery, VendorProductsQuery, VendorProductsView,
-};
+use crate::application::vendor::queries::{SimpleLoggingQuery, VendorProductsQuery};
 use crate::application::vendor::services::VendorServices;
 use crate::domain::vendor::Vendor;
 use crate::infrastructure::vendor::services::VendorApi;
 
+pub async fn start_cqrs_instances(
+    pool: ConnectionPool,
+) -> (Arc<Cqrs<Order>>, Arc<Cqrs<Product>>, Arc<Cqrs<Vendor>>) {
+    let (order_cqrs,) = order_cqrs(pool.clone()).await;
+    let (product_cqrs,) = product_cqrs(pool.clone()).await;
+    let (vendor_cqrs,) = vendor_cqrs(pool.clone()).await;
+
+    // let product_cqrs = Arc::new(product_cqrs);
+    // let vendor_cqrs = Arc::new(vendor_cqrs);
+
+    // let vendor_products_repository =
+    //     Arc::new(ViewRepository::new("vendor_product_view", pool.clone()));
+    // let vendor_products_query = VendorProductsQuery::for_vendor(vendor_products_repository);
+
+    // let vendor_cqrs = vendor_cqrs.append_query(Box::new(vendor_products_query));
+
+    (
+        Arc::new(order_cqrs),
+        Arc::new(product_cqrs),
+        Arc::new(vendor_cqrs),
+    )
+}
+
 pub async fn vendor_cqrs(
     pool: ConnectionPool,
 ) -> (
-    Arc<Cqrs<Vendor>>,
-    Arc<ViewRepository<VendorProductsView, Vendor>>,
+    Cqrs<Vendor>,
+    // Arc<ViewRepository<VendorProductsView, Vendor>>,
 ) {
     let simple_logging_query = SimpleLoggingQuery {};
 
     let vendor_products_repository =
         Arc::new(ViewRepository::new("vendor_product_view", pool.clone()));
-    let mut vendor_products_query = VendorProductsQuery::new(vendor_products_repository.clone());
+    let vendor_products_query = VendorProductsQuery::for_vendor(vendor_products_repository);
+    // let mut vendor_products_query = VendorProductsQuery::new(vendor_products_repository.clone());
     // TODO add error handling
-    vendor_products_query.use_error_handler(Box::new(|error| log::error!("{}", error)));
+    // vendor_products_query.use_error_handler(Box::new(|error| log::error!("{}", error)));
 
     let queries: Vec<Box<dyn Query<Vendor>>> = vec![
         Box::new(simple_logging_query),
@@ -39,35 +61,40 @@ pub async fn vendor_cqrs(
     ];
     let services = VendorServices::new(Box::new(VendorApi));
 
-    let mut cloned_vendor_products_query =
-        VendorProductsQuery::new(vendor_products_repository.clone());
-    cloned_vendor_products_query.use_error_handler(Box::new(|error| log::error!("{}", error)));
+    // let mut cloned_vendor_products_query =
+    //     VendorProductsQuery::new(vendor_products_repository.clone());
+    // cloned_vendor_products_query.use_error_handler(Box::new(|error| log::error!("{}", error)));
 
     let framework = cqrs(pool, "vendor_event", queries, services).await;
-    let framework =
-        framework.with_tracking_event_processor(TrackingEventProcessor::new(vec![Box::new(
-            cloned_vendor_products_query,
-        )]));
+    // let framework =
+    //     framework.with_tracking_event_processor(TrackingEventProcessor::new(vec![Box::new(
+    //         cloned_vendor_products_query,
+    //     )]));
 
-    (Arc::new(framework), vendor_products_repository)
+    (framework,)
 }
 
-pub async fn product_cqrs(pool: ConnectionPool) -> (Arc<Cqrs<Product>>,) {
+pub async fn product_cqrs(pool: ConnectionPool) -> (Cqrs<Product>,) {
     let simple_logging_query = ProductSimpleLoggingQuery {};
 
-    let queries: Vec<Box<dyn Query<Product>>> = vec![Box::new(simple_logging_query)];
+    let vendor_products_repository =
+        Arc::new(ViewRepository::new("vendor_product_view", pool.clone()));
+    let vendor_products_query = VendorProductsQuery::for_product(vendor_products_repository);
+
+    let queries: Vec<Box<dyn Query<Product>>> = vec![
+        Box::new(simple_logging_query),
+        Box::new(vendor_products_query),
+    ];
     let services = ProductServices {};
 
-    (Arc::new(
-        cqrs(pool, "product_event", queries, services).await,
-    ),)
+    (cqrs(pool, "product_event", queries, services).await,)
 }
 
-pub async fn order_cqrs(pool: ConnectionPool) -> (Arc<Cqrs<Order>>,) {
+pub async fn order_cqrs(pool: ConnectionPool) -> (Cqrs<Order>,) {
     // let simple_logging_query = OrderSimpleLoggingQuery {};
 
     let queries: Vec<Box<dyn Query<Order>>> = vec![];
     let services = OrderServices {};
 
-    (Arc::new(cqrs(pool, "order_event", queries, services).await),)
+    (cqrs(pool, "order_event", queries, services).await,)
 }

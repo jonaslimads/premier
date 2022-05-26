@@ -20,6 +20,10 @@ impl Aggregate for Product {
         "".to_string()
     }
 
+    fn secondary_id(&self) -> Option<String> {
+        Some(self.vendor.id.clone())
+    }
+
     async fn handle(
         &self,
         command: Self::Command,

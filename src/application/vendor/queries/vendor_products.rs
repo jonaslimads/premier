@@ -1,13 +1,16 @@
-use cqrs_es::persist::GenericQuery;
-use cqrs_es::{EventEnvelope, View};
+use std::sync::Arc;
+
+use async_trait::async_trait;
+use cqrs_es::persist::{PersistenceError, ViewContext, ViewRepository};
+use cqrs_es::{Aggregate, EventEnvelope, Query, ReplayableQuery, View};
 use mysql_es::MysqlViewRepository;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::domain::vendor::{events::VendorEvent, Vendor};
-
-pub type VendorProductsQuery =
-    GenericQuery<MysqlViewRepository<VendorProductsView, Vendor>, VendorProductsView, Vendor>;
+use crate::domain::product::events::ProductEvent;
+use crate::domain::product::Product;
+use crate::domain::vendor::events::VendorEvent;
+use crate::domain::vendor::Vendor;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct VendorProductsView {
@@ -15,6 +18,16 @@ pub struct VendorProductsView {
     pub name: String,
     pub attributes: Value,
     pub is_archived: bool,
+    pub products: Vec<VendorProductsViewProduct>,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct VendorProductsViewProduct {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub slug: String,
+    pub currency: String,
 }
 
 impl View<Vendor> for VendorProductsView {
@@ -34,3 +47,211 @@ impl View<Vendor> for VendorProductsView {
         }
     }
 }
+
+impl View<Product> for VendorProductsView {
+    fn update(&mut self, event: &EventEnvelope<Product>) {
+        match &event.payload {
+            ProductEvent::ProductAdded {
+                id,
+                vendor_id: _,
+                name,
+                description,
+                slug,
+                currency,
+                attachments: _,
+                attributes: _,
+            } => self.products.push(VendorProductsViewProduct {
+                id: id.clone(),
+                name: name.clone(),
+                description: description.clone(),
+                slug: slug.clone(),
+                currency: currency.clone(),
+            }),
+            _ => {}
+        }
+    }
+}
+
+type VendorViewRepository = Arc<MysqlViewRepository<VendorProductsView, Vendor>>;
+
+type ProductViewRepository = Arc<MysqlViewRepository<VendorProductsView, Product>>;
+
+type ErrorHandler = dyn Fn(PersistenceError) + Send + Sync + 'static;
+
+pub struct VendorProductsQuery {
+    vendor_view_repository: Option<VendorViewRepository>,
+    product_view_repository: Option<ProductViewRepository>,
+    error_handler: Option<Box<ErrorHandler>>,
+}
+
+impl VendorProductsQuery {
+    pub fn for_vendor(vendor_view_repository: VendorViewRepository) -> Self {
+        Self {
+            vendor_view_repository: Some(vendor_view_repository),
+            product_view_repository: None,
+            error_handler: None,
+        }
+    }
+
+    pub fn for_product(product_view_repository: ProductViewRepository) -> Self {
+        Self {
+            vendor_view_repository: None,
+            product_view_repository: Some(product_view_repository),
+            error_handler: None,
+        }
+    }
+
+    pub fn use_error_handler(&mut self, error_handler: Box<ErrorHandler>) {
+        self.error_handler = Some(error_handler);
+    }
+
+    pub async fn load(&self, view_id: &str) -> Option<VendorProductsView> {
+        let view = if let Some(repository) = &self.vendor_view_repository {
+            repository.load_with_context(&view_id)
+        } else if let Some(repository) = &self.vendor_view_repository {
+            repository.load_with_context(&view_id)
+        } else {
+            return None;
+        };
+
+        match view.await {
+            Ok(option) => option.map(|(view, _)| view),
+            Err(error) => {
+                self.handle_error(error);
+                None
+            }
+        }
+    }
+
+    async fn load_mut(
+        &self,
+        view_id: String,
+    ) -> Result<(VendorProductsView, ViewContext), PersistenceError> {
+        let view = if let Some(repository) = &self.vendor_view_repository {
+            repository.load_with_context(&view_id)
+        } else if let Some(repository) = &self.vendor_view_repository {
+            repository.load_with_context(&view_id)
+        } else {
+            let view_context = ViewContext::new(view_id, 0);
+            return Ok((Default::default(), view_context));
+        };
+
+        match view.await? {
+            None => {
+                let view_context = ViewContext::new(view_id, 0);
+                Ok((Default::default(), view_context))
+            }
+            Some((view, context)) => Ok((view, context)),
+        }
+    }
+
+    async fn apply_vendor_events(
+        &self,
+        view_id: &str,
+        events: &[EventEnvelope<Vendor>],
+    ) -> Result<(), PersistenceError> {
+        let (view, view_context) = self.load_mut(view_id.to_string()).await?;
+        if let Some(repository) = &self.vendor_view_repository {
+            self.apply_events(repository, view, view_context, events)
+                .await?;
+        }
+        Ok(())
+    }
+
+    async fn apply_product_events(
+        &self,
+        view_id: &str,
+        events: &[EventEnvelope<Product>],
+    ) -> Result<(), PersistenceError> {
+        let (view, view_context) = self.load_mut(view_id.to_string()).await?;
+        if let Some(repository) = &self.product_view_repository {
+            self.apply_events(repository, view, view_context, events)
+                .await?;
+        }
+        Ok(())
+    }
+
+    async fn replay_events<A: Aggregate, V: View<A>>(
+        &self,
+        repository: &MysqlViewRepository<V, A>,
+        view_id: &str,
+        events: &[EventEnvelope<A>],
+    ) -> Result<(), PersistenceError> {
+        let mut view: V = Default::default();
+        for event in events {
+            view.update(event);
+        }
+        let view_context = ViewContext::new(view_id.to_string(), 0);
+        repository.delete_view(view_id).await?;
+        repository.update_view(view, view_context).await?;
+        Ok(())
+    }
+
+    async fn apply_events<A: Aggregate, V: View<A>>(
+        &self,
+        repository: &MysqlViewRepository<V, A>,
+        mut view: V,
+        view_context: ViewContext,
+        events: &[EventEnvelope<A>],
+    ) -> Result<(), PersistenceError> {
+        for event in events {
+            view.update(event);
+        }
+        repository.update_view(view, view_context).await?;
+        Ok(())
+    }
+
+    fn handle_error(&self, error: PersistenceError) {
+        match &self.error_handler {
+            None => {}
+            Some(handler) => {
+                (handler)(error);
+            }
+        }
+    }
+}
+
+#[async_trait]
+impl Query<Vendor> for VendorProductsQuery {
+    async fn dispatch(
+        &self,
+        view_id: &str,
+        events: &[EventEnvelope<Vendor>],
+        _secondary_id: Option<&str>,
+    ) {
+        match self.apply_vendor_events(view_id, events).await {
+            Ok(_) => {}
+            Err(err) => self.handle_error(err),
+        };
+    }
+}
+
+#[async_trait]
+impl Query<Product> for VendorProductsQuery {
+    async fn dispatch(
+        &self,
+        _view_id: &str,
+        events: &[EventEnvelope<Product>],
+        secondary_id: Option<&str>,
+    ) {
+        match self.apply_product_events(secondary_id.unwrap(), events).await {
+            Ok(_) => {}
+            Err(err) => self.handle_error(err),
+        };
+    }
+}
+
+// #[async_trait]
+// impl<R, V, A> ReplayableQuery<A> for VendorProductsQuery<R, V, A>
+// where
+//     R: ViewRepository<V, A>,
+//     V: View<A>,
+//     A: Aggregate,
+// {
+//     async fn replay(&self, view_id: &str, events: &[EventEnvelope<A>]) {
+//         // match self.replay_events(view_id, events).await {
+//         //     Ok(_) => {}
+//         //     Err(err) => self.handle_error(err),
+//         // };
+//     }
+// }

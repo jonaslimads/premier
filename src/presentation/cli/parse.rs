@@ -58,9 +58,7 @@ pub async fn parse() -> Result<Option<String>> {
         .into_provider();
     let presentation_service = PresentationService::new(pool.clone(), keycloak);
 
-    let (order_cqrs,) = startup::order_cqrs(pool.clone()).await;
-    let (product_cqrs,) = startup::product_cqrs(pool.clone()).await;
-    let (vendor_cqrs, _vendor_products_query) = startup::vendor_cqrs(pool.clone()).await;
+    let (order_cqrs, product_cqrs, vendor_cqrs) = startup::start_cqrs_instances(pool.clone()).await;
 
     match &cli.mode {
         Mode::Serve => {
