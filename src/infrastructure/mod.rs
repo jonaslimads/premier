@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod error;
+pub mod product;
 pub mod vendor;
 
 pub use error::{InfrastructureError, Result};

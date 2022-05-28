@@ -56,6 +56,14 @@ CREATE TABLE `vendor_event_pending_replay` (
     CONSTRAINT FOREIGN KEY (aggregate_id, sequence) REFERENCES vendor_event (aggregate_id, sequence)
 );
 
+CREATE TABLE `vendor_product` (
+    vendor_id BIGINT UNSIGNED NOT NULL,
+    product_id BIGINT UNSIGNED NOT NULL,
+    CONSTRAINT PRIMARY KEY (vendor_id, product_id),
+    CONSTRAINT FOREIGN KEY (vendor_id) REFERENCES vendor_event (aggregate_id),
+    CONSTRAINT FOREIGN KEY (product_id) REFERENCES product_event (aggregate_id)
+);
+
 
 DELIMITER //
 

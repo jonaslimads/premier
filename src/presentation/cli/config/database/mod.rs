@@ -14,9 +14,7 @@ impl DatabaseConfig {
     pub fn get_mysql_or_error(&self) -> Result<&MySqlConfig> {
         match &self.mysql {
             Some(mysql) => Ok(mysql),
-            None => Err(PresentationError::ConfigError(
-                "No MySql config set".to_string(),
-            )),
+            None => Err(PresentationError::Config("No MySql config set".to_string())),
         }
     }
 }

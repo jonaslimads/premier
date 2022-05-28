@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use cqrs_es::Aggregate;
 
@@ -14,14 +16,10 @@ impl Aggregate for Product {
 
     type Error = ProductError;
 
-    type Services = ProductServices;
+    type Services = Arc<ProductServices>;
 
     fn aggregate_type() -> String {
         "".to_string()
-    }
-
-    fn secondary_id(&self) -> Option<String> {
-        Some(self.vendor.id.clone())
     }
 
     async fn handle(
@@ -65,7 +63,7 @@ impl Aggregate for Product {
             }
             ProductCommand::AddProductVariant(command) => {
                 if self.has_variant(command.variant_id.clone()) {
-                    Err(ProductError::VariantFoundError)?
+                    Err(ProductError::VariantFound)?
                 }
                 vec![ProductEvent::ProductVariantAdded {
                     variant_id: command.variant_id,
@@ -80,7 +78,7 @@ impl Aggregate for Product {
                     command.variant_id.clone(),
                     command.warehouse_id.clone(),
                 ) {
-                    Err(Self::Error::ProductVariantAlreadyHasStockFromWarehouseError)?
+                    Err(Self::Error::ProductVariantAlreadyHasStockFromWarehouse)?
                 } else {
                     vec![ProductEvent::ProductVariantStockAdded {
                         variant_id: command.variant_id,
@@ -94,7 +92,7 @@ impl Aggregate for Product {
                     command.variant_id.clone(),
                     command.warehouse_id.clone(),
                 ) {
-                    Err(Self::Error::ProductDoesNotHaveVariantWithStockFromWarehouseError)?
+                    Err(Self::Error::ProductDoesNotHaveVariantWithStockFromWarehouse)?
                 } else {
                     vec![ProductEvent::ProductVariantStockRemoved {
                         variant_id: command.variant_id,
@@ -105,7 +103,7 @@ impl Aggregate for Product {
             ProductCommand::AllocateProductStockVariant(command) => {
                 let variant = self.get_variant_or_error(command.variant_id.clone())?;
                 if variant.has_allocation_by_order_id(command.order_id.clone()) {
-                    Err(ProductError::OrderHasAllocatedVariantError)?;
+                    Err(ProductError::OrderHasAllocatedVariant)?;
                 }
                 let stock = variant.get_available_stock_or_error(command.quantity)?;
                 vec![ProductEvent::ProductVariantStockAllocated {
@@ -121,7 +119,7 @@ impl Aggregate for Product {
                 let previous_allocated_quantity =
                     variant.get_allocated_quantity_by_order_id(command.order_id.clone());
                 if previous_allocated_quantity == 0 {
-                    Err(ProductError::OrderHasNotAllocatedVariantError)?;
+                    Err(ProductError::OrderHasNotAllocatedVariant)?;
                 }
                 let stock = variant
                     .get_available_stock_or_error(command.quantity - previous_allocated_quantity)?;
@@ -137,7 +135,7 @@ impl Aggregate for Product {
                     .get_variant_or_error(command.variant_id.clone())?
                     .get_stock_allocation_by_order_id(command.order_id.clone())
                 {
-                    None => Err(ProductError::OrderHasNotAllocatedVariantError)?,
+                    None => Err(ProductError::OrderHasNotAllocatedVariant)?,
                     Some((stock, _)) => {
                         vec![ProductEvent::ProductVariantStockDeallocated {
                             variant_id: command.variant_id,
@@ -247,6 +245,7 @@ mod aggregate_tests {
     use serde_json::json;
 
     use crate::application::product::commands::*;
+    use crate::application::product::services::tests::MockProductLookup;
     use crate::application::product::services::ProductServices;
     use crate::domain::product::{Product, ProductEvent};
 
@@ -438,6 +437,8 @@ mod aggregate_tests {
     }
 
     fn framework() -> ProductTestFramework {
-        ProductTestFramework::with(ProductServices::new())
+        ProductTestFramework::with(ProductServices::new(Box::new(MockProductLookup::new(
+            "".to_string(),
+        ))))
     }
 }

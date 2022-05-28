@@ -7,6 +7,7 @@ use mysql_es::MysqlViewRepository;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::application::product::services::ProductServices;
 use crate::domain::product::events::ProductEvent;
 use crate::domain::product::Product;
 use crate::domain::vendor::events::VendorEvent;
@@ -81,7 +82,53 @@ type ErrorHandler = dyn Fn(PersistenceError) + Send + Sync + 'static;
 pub struct VendorProductsQuery {
     vendor_view_repository: Option<VendorViewRepository>,
     product_view_repository: Option<ProductViewRepository>,
+    product_services: Option<Arc<ProductServices>>,
     error_handler: Option<Box<ErrorHandler>>,
+}
+
+#[async_trait]
+impl Query<Vendor> for VendorProductsQuery {
+    async fn dispatch(&self, view_id: &str, events: &[EventEnvelope<Vendor>]) {
+        match self.apply_vendor_events(view_id, events).await {
+            Ok(_) => {}
+            Err(err) => self.handle_error(err),
+        };
+    }
+}
+
+#[async_trait]
+impl Query<Product> for VendorProductsQuery {
+    async fn dispatch(&self, view_id: &str, events: &[EventEnvelope<Product>]) {
+        let services = self.get_product_services();
+
+        for event in events {
+            if let ProductEvent::ProductAdded { vendor_id, .. } = &event.payload {
+                services
+                    .lookup
+                    .bind_vendor_product(vendor_id.clone(), view_id.to_string())
+                    .await
+                    .unwrap();
+            }
+        }
+
+        let vendor_id = match services
+            .lookup
+            .get_vendor_id_by_product_id(view_id.to_string())
+            .await
+        {
+            Ok(vendor_id) => vendor_id,
+            Err(error) => {
+                log::error!("{:?}", error);
+                return;
+            }
+        };
+        log::info!("Got vendor_id {}", vendor_id);
+        // log::info!("{} {:?} {}", _view_id, events, secondary_id.unwrap());
+        match self.apply_product_events(vendor_id.as_str(), events).await {
+            Ok(_) => {}
+            Err(err) => self.handle_error(err),
+        };
+    }
 }
 
 impl VendorProductsQuery {
@@ -89,14 +136,19 @@ impl VendorProductsQuery {
         Self {
             vendor_view_repository: Some(vendor_view_repository),
             product_view_repository: None,
+            product_services: None,
             error_handler: None,
         }
     }
 
-    pub fn for_product(product_view_repository: ProductViewRepository) -> Self {
+    pub fn for_product(
+        product_view_repository: ProductViewRepository,
+        product_services: Arc<ProductServices>,
+    ) -> Self {
         Self {
             vendor_view_repository: None,
             product_view_repository: Some(product_view_repository),
+            product_services: Some(product_services),
             error_handler: None,
         }
     }
@@ -108,7 +160,7 @@ impl VendorProductsQuery {
     pub async fn load(&self, view_id: &str) -> Option<VendorProductsView> {
         let view = if let Some(repository) = &self.vendor_view_repository {
             repository.load_with_context(&view_id)
-        } else if let Some(repository) = &self.vendor_view_repository {
+        } else if let Some(repository) = &self.product_view_repository {
             repository.load_with_context(&view_id)
         } else {
             return None;
@@ -123,13 +175,17 @@ impl VendorProductsQuery {
         }
     }
 
+    fn get_product_services(&self) -> &Arc<ProductServices> {
+        self.product_services.as_ref().expect("No service found")
+    }
+
     async fn load_mut(
         &self,
         view_id: String,
     ) -> Result<(VendorProductsView, ViewContext), PersistenceError> {
         let view = if let Some(repository) = &self.vendor_view_repository {
             repository.load_with_context(&view_id)
-        } else if let Some(repository) = &self.vendor_view_repository {
+        } else if let Some(repository) = &self.product_view_repository {
             repository.load_with_context(&view_id)
         } else {
             let view_context = ViewContext::new(view_id, 0);
@@ -164,6 +220,7 @@ impl VendorProductsQuery {
         events: &[EventEnvelope<Product>],
     ) -> Result<(), PersistenceError> {
         let (view, view_context) = self.load_mut(view_id.to_string()).await?;
+        log::warn!("Got view: {:?} {}", view, view_id);
         if let Some(repository) = &self.product_view_repository {
             self.apply_events(repository, view, view_context, events)
                 .await?;
@@ -177,11 +234,11 @@ impl VendorProductsQuery {
         view_id: &str,
         events: &[EventEnvelope<A>],
     ) -> Result<(), PersistenceError> {
+        let view_context = ViewContext::new(view_id.to_string(), 0);
         let mut view: V = Default::default();
         for event in events {
             view.update(event);
         }
-        let view_context = ViewContext::new(view_id.to_string(), 0);
         repository.delete_view(view_id).await?;
         repository.update_view(view, view_context).await?;
         Ok(())
@@ -208,36 +265,6 @@ impl VendorProductsQuery {
                 (handler)(error);
             }
         }
-    }
-}
-
-#[async_trait]
-impl Query<Vendor> for VendorProductsQuery {
-    async fn dispatch(
-        &self,
-        view_id: &str,
-        events: &[EventEnvelope<Vendor>],
-        _secondary_id: Option<&str>,
-    ) {
-        match self.apply_vendor_events(view_id, events).await {
-            Ok(_) => {}
-            Err(err) => self.handle_error(err),
-        };
-    }
-}
-
-#[async_trait]
-impl Query<Product> for VendorProductsQuery {
-    async fn dispatch(
-        &self,
-        _view_id: &str,
-        events: &[EventEnvelope<Product>],
-        secondary_id: Option<&str>,
-    ) {
-        match self.apply_product_events(secondary_id.unwrap(), events).await {
-            Ok(_) => {}
-            Err(err) => self.handle_error(err),
-        };
     }
 }
 

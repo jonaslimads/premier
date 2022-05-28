@@ -14,7 +14,7 @@ impl AuthConfig {
     pub fn get_keycloak_or_error(&self) -> Result<&AuthKeycloakConfig> {
         match &self.keycloak {
             Some(keycloak) => Ok(keycloak),
-            None => Err(PresentationError::ConfigError(
+            None => Err(PresentationError::Config(
                 "No Keycloak config set".to_string(),
             )),
         }

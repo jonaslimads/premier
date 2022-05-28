@@ -3,17 +3,17 @@ use thiserror::Error;
 #[derive(Clone, Debug, Error)]
 pub enum OrderError {
     #[error("Product not found")]
-    ProductNotFoundError,
+    ProductNotFound,
 
     #[error("Product existent")]
-    ProductExistentError,
+    ProductExistent,
 
     #[error("Product variant not found")]
-    ProductVariantNotFoundError,
+    ProductVariantNotFound,
 
     #[error("Product variant existent")]
-    ProductVariantExistentError,
+    ProductVariantExistent,
 
     #[error("{0}")]
-    TransitionError(String),
+    Transition(String),
 }

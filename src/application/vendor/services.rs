@@ -11,7 +11,7 @@ impl VendorServices {
 }
 
 #[async_trait]
-pub trait VendorApi: Sync + Send {
+pub trait VendorApi: Send + Sync {
     async fn find_id(&self) -> Result<String, CouldNotFindIdError>;
 }
 

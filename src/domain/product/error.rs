@@ -3,27 +3,27 @@ use thiserror::Error;
 #[derive(Clone, Debug, Error)]
 pub enum ProductError {
     #[error("Variant found")]
-    VariantFoundError,
+    VariantFound,
 
     #[error("Variant not found")]
-    VariantNotFoundError,
+    VariantNotFound,
 
     // #[error("Warehouse found")]
     // WarehouseFoundError,
     // #[error("Warehouse not found")]
     // WarehouseNotFoundError,
     #[error("Warehouse with enough stock not found")]
-    WarehouseWithEnoughStockNotFoundError,
+    WarehouseWithEnoughStockNotFound,
 
     #[error("Product already has variant with stock from this warehouse")]
-    ProductVariantAlreadyHasStockFromWarehouseError,
+    ProductVariantAlreadyHasStockFromWarehouse,
 
     #[error("Product does not have variant with stock from this warehouse")]
-    ProductDoesNotHaveVariantWithStockFromWarehouseError,
+    ProductDoesNotHaveVariantWithStockFromWarehouse,
 
     #[error("Order has allocated this variant")]
-    OrderHasAllocatedVariantError,
+    OrderHasAllocatedVariant,
 
     #[error("Order has not allocated this variant")]
-    OrderHasNotAllocatedVariantError,
+    OrderHasNotAllocatedVariant,
 }

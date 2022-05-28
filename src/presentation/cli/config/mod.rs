@@ -29,7 +29,7 @@ impl Config {
     pub fn get_database_or_error(&self) -> Result<&DatabaseConfig> {
         match &self.database {
             Some(database) => Ok(database),
-            None => Err(PresentationError::ConfigError(
+            None => Err(PresentationError::Config(
                 "No Database config set".to_string(),
             )),
         }
@@ -38,9 +38,7 @@ impl Config {
     pub fn get_auth_or_error(&self) -> Result<&AuthConfig> {
         match &self.auth {
             Some(auth) => Ok(auth),
-            None => Err(PresentationError::ConfigError(
-                "No Auth config set".to_string(),
-            )),
+            None => Err(PresentationError::Config("No Auth config set".to_string())),
         }
     }
 

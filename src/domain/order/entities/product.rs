@@ -40,7 +40,7 @@ impl Product {
 
     pub fn get_variant_or_error(&self, variant_id: String) -> Result<&Variant, OrderError> {
         self.get_variant(variant_id)
-            .ok_or(OrderError::ProductVariantNotFoundError)
+            .ok_or(OrderError::ProductVariantNotFound)
     }
 
     pub fn get_variant(&self, variant_id: String) -> Option<&Variant> {

@@ -33,12 +33,12 @@ impl PresentationService {
         } else if is_new && aggregate_id != "" {
             Ok(aggregate_id)
         } else if !is_new && aggregate_id == "" {
-            Err(PresentationError::EmptyAggregateIdError)
+            Err(PresentationError::EmptyAggregateId)
         } else if !self
             .exists_aggregate_id(aggregate_type, aggregate_id.clone())
             .await?
         {
-            Err(PresentationError::NotFoundAggregateError(aggregate_id))
+            Err(PresentationError::NotFoundAggregate(aggregate_id))
         } else {
             Ok(aggregate_id)
         }

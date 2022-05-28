@@ -36,7 +36,7 @@ impl Variant {
 
     pub fn get_available_stock_or_error(&self, quantity: u32) -> Result<&Stock, ProductError> {
         self.get_available_stock(quantity)
-            .ok_or(ProductError::WarehouseWithEnoughStockNotFoundError)
+            .ok_or(ProductError::WarehouseWithEnoughStockNotFound)
     }
 
     fn get_available_stock(&self, quantity: u32) -> Option<&Stock> {

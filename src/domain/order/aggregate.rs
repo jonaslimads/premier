@@ -35,7 +35,7 @@ impl Aggregate for Order {
             OrderCommand::UnarchiveOrder(_) => vec![OrderEvent::OrderUnarchived {}],
             OrderCommand::AddOrderProduct(command) => {
                 if self.get_product(command.product_id.clone()).is_some() {
-                    Err(OrderError::ProductExistentError)?;
+                    Err(OrderError::ProductExistent)?;
                 }
                 vec![OrderEvent::OrderProductAdded {
                     product_id: command.product_id,
@@ -53,7 +53,7 @@ impl Aggregate for Order {
                     .get_variant(command.variant_id.clone())
                     .is_some()
                 {
-                    Err(OrderError::ProductVariantExistentError)?;
+                    Err(OrderError::ProductVariantExistent)?;
                 }
                 vec![OrderEvent::OrderProductVariantAdded {
                     product_id: command.product_id,

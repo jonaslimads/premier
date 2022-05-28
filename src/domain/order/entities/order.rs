@@ -59,7 +59,7 @@ impl Order {
 
     pub fn get_product_or_error(&self, product_id: String) -> Result<&Product, OrderError> {
         self.get_product(product_id)
-            .ok_or(OrderError::ProductNotFoundError)
+            .ok_or(OrderError::ProductNotFound)
     }
 
     pub fn get_product(&self, product_id: String) -> Option<&Product> {
@@ -103,7 +103,7 @@ impl Order {
             // return flow
             (OrderState::Processing, OrderStateInput::Return) => OrderState::Returned,
             (OrderState::Attention, OrderStateInput::Return) => OrderState::Returned,
-            _ => Err(OrderError::TransitionError(format!(
+            _ => Err(OrderError::Transition(format!(
                 "Cannot transition from {:?} through {:?}",
                 self.state, input
             )))?,

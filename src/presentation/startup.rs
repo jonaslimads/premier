@@ -11,6 +11,7 @@ use crate::domain::order::Order;
 use crate::application::product::queries::SimpleLoggingQuery as ProductSimpleLoggingQuery;
 use crate::application::product::services::ProductServices;
 use crate::domain::product::Product;
+use crate::infrastructure::product::services::ProductLookup;
 
 use crate::application::vendor::queries::{SimpleLoggingQuery, VendorProductsQuery};
 use crate::application::vendor::services::VendorServices;
@@ -46,6 +47,8 @@ pub async fn vendor_cqrs(
     Cqrs<Vendor>,
     // Arc<ViewRepository<VendorProductsView, Vendor>>,
 ) {
+    let services = VendorServices::new(Box::new(VendorApi));
+
     let simple_logging_query = SimpleLoggingQuery {};
 
     let vendor_products_repository =
@@ -59,7 +62,6 @@ pub async fn vendor_cqrs(
         Box::new(simple_logging_query),
         Box::new(vendor_products_query),
     ];
-    let services = VendorServices::new(Box::new(VendorApi));
 
     // let mut cloned_vendor_products_query =
     //     VendorProductsQuery::new(vendor_products_repository.clone());
@@ -75,17 +77,19 @@ pub async fn vendor_cqrs(
 }
 
 pub async fn product_cqrs(pool: ConnectionPool) -> (Cqrs<Product>,) {
+    let services = ProductServices::new(ProductLookup::new(pool.clone()));
+
     let simple_logging_query = ProductSimpleLoggingQuery {};
 
     let vendor_products_repository =
         Arc::new(ViewRepository::new("vendor_product_view", pool.clone()));
-    let vendor_products_query = VendorProductsQuery::for_product(vendor_products_repository);
+    let vendor_products_query =
+        VendorProductsQuery::for_product(vendor_products_repository, services.clone());
 
     let queries: Vec<Box<dyn Query<Product>>> = vec![
         Box::new(simple_logging_query),
         Box::new(vendor_products_query),
     ];
-    let services = ProductServices {};
 
     (cqrs(pool, "product_event", queries, services).await,)
 }
