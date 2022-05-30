@@ -9,6 +9,7 @@ use crate::application::order::services::OrderServices;
 use crate::domain::order::Order;
 
 use crate::application::product::queries::SimpleLoggingQuery as ProductSimpleLoggingQuery;
+use crate::application::product::queries::VendorProductsQueryFromProduct;
 use crate::application::product::services::ProductServices;
 use crate::domain::product::Product;
 use crate::infrastructure::product::services::ProductLookup;
@@ -53,7 +54,7 @@ pub async fn vendor_cqrs(
 
     let vendor_products_repository =
         Arc::new(ViewRepository::new("vendor_product_view", pool.clone()));
-    let vendor_products_query = VendorProductsQuery::for_vendor(vendor_products_repository);
+    let vendor_products_query = VendorProductsQuery::new(vendor_products_repository);
     // let mut vendor_products_query = VendorProductsQuery::new(vendor_products_repository.clone());
     // TODO add error handling
     // vendor_products_query.use_error_handler(Box::new(|error| log::error!("{}", error)));
@@ -84,7 +85,7 @@ pub async fn product_cqrs(pool: ConnectionPool) -> (Cqrs<Product>,) {
     let vendor_products_repository =
         Arc::new(ViewRepository::new("vendor_product_view", pool.clone()));
     let vendor_products_query =
-        VendorProductsQuery::for_product(vendor_products_repository, services.clone());
+        VendorProductsQueryFromProduct::new(vendor_products_repository, services.clone());
 
     let queries: Vec<Box<dyn Query<Product>>> = vec![
         Box::new(simple_logging_query),
