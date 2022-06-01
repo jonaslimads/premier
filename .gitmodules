@@ -4,3 +4,6 @@
 [submodule "mysql-es"]
 	path = mysql-es
 	url = https://github.com/jonaslimads/mysql-es/
+[submodule "admin"]
+	path = admin
+	url = git@github.com:jonaslimads/premier-admin.git

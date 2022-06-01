@@ -22,13 +22,13 @@ impl View<Product> for VendorProductsView {
                 currency,
                 attachments: _,
                 attributes: _,
-            } => self.products.push(VendorProductsViewProduct {
+            } => self.uncategorized_products.push(VendorProductsViewProduct {
                 id: id.clone(),
                 name: name.clone(),
                 slug: slug.clone(),
                 currency: currency.clone(),
                 price: 0,
-                is_archived: true,
+                is_archived: false,
             }),
             ProductEvent::ProductArchived {} => {
                 if let Some(product) = self.get_product_mut(event.aggregate_id.clone()) {

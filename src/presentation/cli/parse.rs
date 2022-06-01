@@ -113,7 +113,9 @@ pub async fn parse() -> Result<Option<String>> {
                 product => DeallocateProductStockVariant,
                 vendor => AddVendor,
                 vendor => ArchiveVendor,
-                vendor => UnarchiveVendor
+                vendor => UnarchiveVendor,
+                vendor => AddCategory,
+                vendor => CategorizeProduct
             }?;
 
             return pretty_print_json(json!({ "aggregate_id": aggregate_id }));

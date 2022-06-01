@@ -168,7 +168,7 @@ impl Aggregate for Product {
                 self.currency = currency;
                 self.attachments = attachments;
                 self.attributes = attributes;
-                self.is_archived = true;
+                self.is_archived = false;
             }
             ProductEvent::ProductArchived {} => self.is_archived = true,
             ProductEvent::ProductUnarchived {} => self.is_archived = false,

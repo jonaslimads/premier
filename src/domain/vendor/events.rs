@@ -12,6 +12,17 @@ pub enum VendorEvent {
     },
     VendorArchived {},
     VendorUnarchived {},
+    VendorCategoryAdded {
+        category_id: String,
+        name: String,
+        slug: String,
+        order: u16,
+        parent_category_id: Option<String>,
+    },
+    ProductCategorized {
+        category_id: String,
+        product_id: String,
+    },
 }
 
 impl DomainEvent for VendorEvent {
@@ -20,6 +31,8 @@ impl DomainEvent for VendorEvent {
             VendorEvent::VendorAdded { .. } => "VendorAdded",
             VendorEvent::VendorArchived { .. } => "VendorArchived",
             VendorEvent::VendorUnarchived { .. } => "VendorUnarchived",
+            VendorEvent::VendorCategoryAdded { .. } => "VendorCategoryAdded",
+            VendorEvent::ProductCategorized { .. } => "ProductCategorized",
         })
         .to_string()
     }

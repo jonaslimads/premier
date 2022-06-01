@@ -3,7 +3,7 @@ use cqrs_es::Aggregate;
 
 use crate::application::vendor::commands::VendorCommand;
 use crate::application::vendor::services::VendorServices;
-use crate::domain::vendor::{Vendor, VendorError, VendorEvent};
+use crate::domain::vendor::{Category, Vendor, VendorError, VendorEvent};
 
 #[async_trait]
 impl Aggregate for Vendor {
@@ -32,6 +32,17 @@ impl Aggregate for Vendor {
             }],
             VendorCommand::ArchiveVendor(_) => vec![VendorEvent::VendorArchived {}],
             VendorCommand::UnarchiveVendor(_) => vec![VendorEvent::VendorUnarchived {}],
+            VendorCommand::AddCategory(command) => vec![VendorEvent::VendorCategoryAdded {
+                category_id: command.category_id,
+                name: command.name,
+                slug: command.slug,
+                order: command.order,
+                parent_category_id: command.parent_category_id,
+            }],
+            VendorCommand::CategorizeProduct(command) => vec![VendorEvent::ProductCategorized {
+                category_id: command.category_id,
+                product_id: command.product_id,
+            }],
         })
     }
 
@@ -45,10 +56,24 @@ impl Aggregate for Vendor {
                 self.id = id;
                 self.name = name;
                 self.attributes = attributes;
-                self.is_archived = true;
+                self.is_archived = false;
             }
             VendorEvent::VendorArchived {} => self.is_archived = true,
             VendorEvent::VendorUnarchived {} => self.is_archived = false,
+            VendorEvent::VendorCategoryAdded {
+                category_id,
+                name,
+                slug,
+                order,
+                parent_category_id,
+            } => self.add_category(
+                Category::new(category_id, name, slug, order),
+                parent_category_id,
+            ),
+            VendorEvent::ProductCategorized {
+                category_id,
+                product_id,
+            } => self.categorize_product(category_id, product_id),
         }
     }
 }

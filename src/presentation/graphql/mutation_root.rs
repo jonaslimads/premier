@@ -125,5 +125,7 @@ mutation_root!(
     product => DeallocateProductStockVariant,
     vendor => AddVendor,
     vendor => ArchiveVendor,
-    vendor => UnarchiveVendor
+    vendor => UnarchiveVendor,
+    vendor => AddCategory,
+    vendor => CategorizeProduct
 );
