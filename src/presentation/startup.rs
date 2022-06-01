@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use cqrs_es::Query;
-// TrackingEventProcessor
+// use cqrs_es::TrackingEventProcessor;
 
 use crate::infrastructure::{cqrs, ConnectionPool, Cqrs, ViewRepository};
 

@@ -8,7 +8,7 @@ use serde_json::Value;
 use crate::domain::vendor::events::VendorEvent;
 use crate::domain::vendor::Vendor;
 
-#[derive(Debug, Default, Serialize, Deserialize, SimpleObject)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, SimpleObject)]
 pub struct VendorProductsView {
     pub id: String,
     pub name: String,
@@ -17,13 +17,13 @@ pub struct VendorProductsView {
     pub products: Vec<VendorProductsViewProduct>,
 }
 
-#[derive(Debug, Default, Serialize, Deserialize, SimpleObject)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize, SimpleObject)]
 pub struct VendorProductsViewProduct {
     pub id: String,
     pub name: String,
-    pub description: String,
     pub slug: String,
     pub currency: String,
+    pub price: u32,
     pub is_archived: bool,
 }
 
@@ -38,6 +38,18 @@ impl VendorProductsView {
             }
         }
         None
+    }
+
+    pub fn remove_archived_products(&mut self) {
+        let mut i = 0;
+        let products = &mut self.products;
+        while i < products.len() {
+            if products[i].is_archived {
+                products.remove(i);
+            } else {
+                i += 1;
+            }
+        }
     }
 }
 

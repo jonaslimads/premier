@@ -17,7 +17,7 @@ impl View<Product> for VendorProductsView {
                 id,
                 vendor_id: _,
                 name,
-                description,
+                description: _,
                 slug,
                 currency,
                 attachments: _,
@@ -25,9 +25,9 @@ impl View<Product> for VendorProductsView {
             } => self.products.push(VendorProductsViewProduct {
                 id: id.clone(),
                 name: name.clone(),
-                description: description.clone(),
                 slug: slug.clone(),
                 currency: currency.clone(),
+                price: 0,
                 is_archived: true,
             }),
             ProductEvent::ProductArchived {} => {
