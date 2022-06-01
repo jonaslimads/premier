@@ -10,8 +10,6 @@ pub struct Order {
     pub id: String,
     pub buyer: Buyer,
     pub state: OrderState,
-    // pub total_gross_amount: u32,
-    // pub total_net_amount: u32,
     pub products: Vec<Product>,
     pub created_on: DateTime<Utc>,
     pub is_archived: bool,

@@ -28,7 +28,28 @@ impl View<Product> for VendorProductsView {
                 description: description.clone(),
                 slug: slug.clone(),
                 currency: currency.clone(),
+                is_archived: true,
             }),
+            ProductEvent::ProductArchived {} => {
+                if let Some(product) = self.get_product_mut(event.aggregate_id.clone()) {
+                    product.is_archived = true;
+                }
+            }
+            ProductEvent::ProductUnarchived {} => {
+                if let Some(product) = self.get_product_mut(event.aggregate_id.clone()) {
+                    product.is_archived = false;
+                }
+            }
+            ProductEvent::ProductNameUpdated { name } => {
+                if let Some(product) = self.get_product_mut(event.aggregate_id.clone()) {
+                    product.name = name.clone();
+                }
+            }
+            ProductEvent::ProductSlugUpdated { slug } => {
+                if let Some(product) = self.get_product_mut(event.aggregate_id.clone()) {
+                    product.slug = slug.clone();
+                }
+            }
             _ => {}
         }
     }

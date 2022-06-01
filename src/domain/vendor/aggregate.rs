@@ -45,6 +45,7 @@ impl Aggregate for Vendor {
                 self.id = id;
                 self.name = name;
                 self.attributes = attributes;
+                self.is_archived = true;
             }
             VendorEvent::VendorArchived {} => self.is_archived = true,
             VendorEvent::VendorUnarchived {} => self.is_archived = false,

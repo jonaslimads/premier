@@ -58,16 +58,20 @@ pub async fn parse() -> Result<Option<String>> {
         .into_provider();
     let presentation_service = PresentationService::new(pool.clone(), keycloak);
 
-    let (order_cqrs, product_cqrs, vendor_cqrs) = startup::start_cqrs_instances(pool.clone()).await;
+    let (order_startup, product_startup, vendor_startup) =
+        startup::start_cqrs_instances(pool.clone()).await;
+    let (order_cqrs,) = order_startup;
+    let (product_cqrs,) = product_startup;
+    let (vendor_cqrs, vendor_product_query) = vendor_startup;
 
     match &cli.mode {
         Mode::Serve => {
             start_graphql_server(
                 config.get_port(),
                 presentation_service,
-                order_cqrs.clone(),
-                product_cqrs.clone(),
-                vendor_cqrs.clone(),
+                (order_cqrs.clone(),),
+                (product_cqrs.clone(),),
+                (vendor_cqrs.clone(), vendor_product_query.clone()),
             )
             .await;
         }
