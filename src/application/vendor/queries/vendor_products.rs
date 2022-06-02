@@ -57,7 +57,7 @@ impl View<Vendor> for VendorProductsView {
             }
             VendorEvent::VendorArchived {} => self.is_archived = true,
             VendorEvent::VendorUnarchived {} => self.is_archived = false,
-            VendorEvent::VendorCategoryAdded {
+            VendorEvent::CategoryAdded {
                 category_id,
                 name,
                 slug,

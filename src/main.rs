@@ -6,8 +6,6 @@ mod domain;
 mod infrastructure;
 mod presentation;
 
-// idea for name: Lilo
-
 use crate::presentation::cli;
 
 #[tokio::main]
@@ -24,6 +22,14 @@ async fn main() {
         Ok(None) => {}
     }
 }
+
+// SET FOREIGN_KEY_CHECKS=0;
+// TRUNCATE TABLE vendor_event;
+// TRUNCATE TABLE product_event;
+// TRUNCATE TABLE vendor_product;
+// TRUNCATE TABLE vendor_product_view;
+// SET FOREIGN_KEY_CHECKS=1;
+// SELECT GET_RANDOM_VENDOR_EVENT_AGGREGATE_ID(100000000000, 1000000000000-1);
 
 // select premier.get_random_product_event_aggregate_id(100000000000, 1000000000000-1);
 

@@ -32,7 +32,7 @@ impl Aggregate for Vendor {
             }],
             VendorCommand::ArchiveVendor(_) => vec![VendorEvent::VendorArchived {}],
             VendorCommand::UnarchiveVendor(_) => vec![VendorEvent::VendorUnarchived {}],
-            VendorCommand::AddCategory(command) => vec![VendorEvent::VendorCategoryAdded {
+            VendorCommand::AddCategory(command) => vec![VendorEvent::CategoryAdded {
                 category_id: command.category_id,
                 name: command.name,
                 slug: command.slug,
@@ -60,7 +60,7 @@ impl Aggregate for Vendor {
             }
             VendorEvent::VendorArchived {} => self.is_archived = true,
             VendorEvent::VendorUnarchived {} => self.is_archived = false,
-            VendorEvent::VendorCategoryAdded {
+            VendorEvent::CategoryAdded {
                 category_id,
                 name,
                 slug,

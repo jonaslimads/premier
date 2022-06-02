@@ -7,8 +7,8 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-graphql = {version = "3.0.38", features = ["chrono"]}
-async-graphql-warp = "3.0.38"
+async-graphql = {version = "4.0.1", features = ["chrono"]}
+async-graphql-warp = "4.0.1"
 async-trait = "0.1.53"
 chrono = {version = "0.4.19", features = ["serde"]}
 clap = {version = "3.1.15", features = ["derive"]}

@@ -12,7 +12,7 @@ pub enum VendorEvent {
     },
     VendorArchived {},
     VendorUnarchived {},
-    VendorCategoryAdded {
+    CategoryAdded {
         category_id: String,
         name: String,
         slug: String,
@@ -31,7 +31,7 @@ impl DomainEvent for VendorEvent {
             VendorEvent::VendorAdded { .. } => "VendorAdded",
             VendorEvent::VendorArchived { .. } => "VendorArchived",
             VendorEvent::VendorUnarchived { .. } => "VendorUnarchived",
-            VendorEvent::VendorCategoryAdded { .. } => "VendorCategoryAdded",
+            VendorEvent::CategoryAdded { .. } => "CategoryAdded",
             VendorEvent::ProductCategorized { .. } => "ProductCategorized",
         })
         .to_string()
