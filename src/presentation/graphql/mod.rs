@@ -34,7 +34,7 @@ pub async fn start_graphql_server(
 
     let schema_sdl = schema.sdl();
     let warp_data_filter = warp::any().map(move || Arc::new(schema_sdl.clone()));
-    let get_schema_sdl_route = warp::path!("schema.sdl")
+    let get_schema_sdl_route = warp::path!("schema.graphql")
         .and(warp_data_filter.clone())
         .and_then(get_schema_sdl);
 
@@ -65,6 +65,11 @@ pub async fn start_graphql_server(
             .body(playground_source(GraphQLPlaygroundConfig::new("/")))
     });
 
+    let cors = warp::cors()
+        .allow_any_origin()
+        .allow_methods(vec!["GET", "POST"])
+        .allow_headers(vec!["Content-Type"]);
+
     let routes = get_schema_sdl_route
         .or(graphql_playground)
         .or(graphql_post)
@@ -80,7 +85,8 @@ pub async fn start_graphql_server(
                 "INTERNAL_SERVER_ERROR".to_string(),
                 StatusCode::INTERNAL_SERVER_ERROR,
             ))
-        });
+        })
+        .with(cors);
 
     log::info!("Playground: http://0.0.0.0:{}/playground", port);
 

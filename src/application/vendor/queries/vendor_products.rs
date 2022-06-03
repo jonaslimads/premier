@@ -20,7 +20,6 @@ pub struct VendorProductsView {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, SimpleObject)]
 pub struct VendorProductsViewCategory {
-    #[graphql(skip)]
     pub id: String,
     pub name: String,
     pub slug: String,
