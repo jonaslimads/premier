@@ -8,7 +8,7 @@ use serde_json::Value;
 use crate::domain::vendor::events::VendorEvent;
 use crate::domain::vendor::Vendor;
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize, SimpleObject)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
 pub struct VendorProductsView {
     pub id: String,
     pub name: String,
@@ -18,7 +18,7 @@ pub struct VendorProductsView {
     pub uncategorized_products: Vec<VendorProductsViewProduct>,
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize, SimpleObject)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
 pub struct VendorProductsViewCategory {
     pub id: String,
     pub name: String,
@@ -31,7 +31,7 @@ pub struct VendorProductsViewCategory {
     pub products: Vec<VendorProductsViewProduct>,
 }
 
-#[derive(Clone, Debug, Default, Serialize, Deserialize, SimpleObject)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
 pub struct VendorProductsViewProduct {
     pub id: String,
     pub name: String,

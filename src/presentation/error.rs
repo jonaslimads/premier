@@ -42,6 +42,9 @@ pub enum PresentationError {
 
     #[error("Not found aggregate with id {0}")]
     NotFoundAggregate(String),
+
+    #[error("Required {0}")]
+    Required(String),
 }
 
 impl From<AggregateError<OrderError>> for PresentationError {
@@ -93,6 +96,7 @@ impl async_graphql::ErrorExtensions for PresentationError {
             // Self::AuthenticationError(_) => e.set("code", "UNAUTHENTICATED"),
             // Self::AuthorizationError(_) => e.set("code", "FORBIDDEN"),
             Self::NotFoundAggregate(_) => e.set("code", "NOT_FOUND"),
+            Self::Required(_) => e.set("code", "BAD_REQUEST"),
             // Self::SqlError(_) => e.set("code", "SQL_ERROR"),
             _ => e.set("code", "INTERNAL_SERVER_ERROR"),
         })
