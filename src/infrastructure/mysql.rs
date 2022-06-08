@@ -1,7 +1,7 @@
 use cqrs_es::persist::PersistedEventStore;
 use cqrs_es::{Aggregate, CqrsFramework, Query};
-use mysql_es::MysqlEventRepository;
 pub use mysql_es::MysqlViewRepository;
+use mysql_es::{MysqlEventRepository, SqlQueryFactory};
 pub use sqlx::mysql::MySqlPoolOptions;
 pub use sqlx::MySqlPool;
 
@@ -26,50 +26,37 @@ where
         payload,
         metadata
     ";
-    let repo = MysqlEventRepository {
-        pool,
-        event_table: events_table.to_string(),
-        insert_event:
-            format!("INSERT INTO {} (aggregate_id, sequence, event_type, event_version, payload, metadata)
-                    VALUES (?, ?, ?, CONVERT_VERSION_TO_INT(?), ?, ?)", events_table),
-        select_events:
-            format!("SELECT {}
-                    FROM {}
-                    WHERE '' = ? AND aggregate_id = ?
-                    ORDER BY sequence", event_select_fields, events_table),
-        select_last_events:
-            format!("SELECT {}
-                    FROM {}
-                    WHERE '' = ? AND aggregate_id = ? AND sequence > ?
-                    ORDER BY sequence", event_select_fields, events_table),
-        select_multiple_aggregate_events:
-            format!("SELECT {}
-                    FROM {}
-                    WHERE '' = ? AND aggregate_id IN ?
-                    ORDER BY CAST(aggregate_id AS UNSIGNED), sequence", event_select_fields, events_table),
-        select_all_aggregate_events:
-            format!("SELECT {}
-                    FROM {}
-                    WHERE '' = ?
-                    ORDER BY CAST(aggregate_id AS UNSIGNED), sequence", event_select_fields, events_table),
-        insert_snapshot:
-            format!("INSERT INTO {} (aggregate_id, last_sequence, current_snapshot, payload)
-                    VALUES (?, ?, ?, ?)", snapshots_table),
-        update_snapshot:
-            format!("UPDATE {}
-                    SET last_sequence= ? , payload= ?, current_snapshot= ?
-                    WHERE '' = ? AND aggregate_id= ? AND current_snapshot= ?", snapshots_table),
-        select_snapshot:
-            format!("SELECT '' AS aggregate_type, CAST(aggregate_id AS CHAR) AS aggregate_id, last_sequence, current_snapshot, payload
-                    FROM {}
-                    WHERE '' = ? AND aggregate_id = ?", snapshots_table),
-    };
-    // log::warn!(
-    //     "{:?}",
-    //     repo.get_multiple_aggregate_events::<A>(vec!["332807312192", "332807312191"])
-    //         .await
-    //         .unwrap()
-    // );
+    let query_factory = SqlQueryFactory::with(
+        format!("
+SELECT {}
+  FROM {}
+  WHERE '' = ? AND aggregate_id = ?
+  ORDER BY sequence", event_select_fields, events_table),
+        format!("
+INSERT INTO {} (aggregate_id, sequence, event_type, event_version, payload, metadata)
+  VALUES (?, ?, ?, CONVERT_VERSION_TO_INT(?), ?, ?)", events_table),
+        format!("
+SELECT {}
+  FROM {}
+  WHERE '' = ?
+  ORDER BY CAST(aggregate_id AS UNSIGNED), sequence", event_select_fields, events_table),
+        format!("
+SELECT {}
+  FROM {}
+  WHERE '' = ? AND aggregate_id = ? AND sequence > ?
+  ORDER BY sequence", event_select_fields, events_table),
+        format!("
+INSERT INTO {} (aggregate_id, last_sequence, current_snapshot, payload)
+  VALUES (?, ?, ?, ?)", snapshots_table),
+        format!("
+UPDATE {}
+  SET last_sequence= ? , payload= ?, current_snapshot= ?
+  WHERE '' = ? AND aggregate_id= ? AND current_snapshot= ?", snapshots_table),
+        format!("
+SELECT '' AS aggregate_type, CAST(aggregate_id AS CHAR) AS aggregate_id, last_sequence, current_snapshot, payload
+  FROM {}
+  WHERE '' = ? AND aggregate_id = ?", snapshots_table));
+    let repo = MysqlEventRepository::new(pool).with_query_factory(query_factory);
     let store = PersistedEventStore::new_event_store(repo); //.with_upcasters(get_upcasters());
     CqrsFramework::new(store, queries, services)
 }

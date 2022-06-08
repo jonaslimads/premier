@@ -78,7 +78,7 @@ pub async fn parse() -> Result<Option<String>> {
         Mode::Replay { aggregate } => {
             if aggregate == "vendor" {
                 log::info!("Replay {} events", aggregate);
-                vendor_cqrs.replay().await?;
+                // vendor_cqrs.replay().await?;
             } else {
                 log::error!("Aggregate {} does not support replay", aggregate);
             }
