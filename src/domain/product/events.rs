@@ -26,11 +26,11 @@ pub enum ProductEvent {
     ProductNameUpdated {
         name: String,
     },
-    ProductSlugUpdated {
-        slug: String,
-    },
     ProductDescriptionUpdated {
         description: String,
+    },
+    ProductSlugUpdated {
+        slug: String,
     },
     ProductAttachmentsUpdated {
         attachments: Vec<String>,

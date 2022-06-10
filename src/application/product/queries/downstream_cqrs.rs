@@ -9,7 +9,6 @@ use crate::infrastructure::Cqrs;
 
 use crate::application::vendor::commands::{CategorizeProductCommand, VendorCommand};
 
-// #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct DownstreamCqrs {
     vendor_cqrs: Arc<Cqrs<Vendor>>,
 }

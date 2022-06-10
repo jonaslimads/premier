@@ -107,7 +107,7 @@ macro_rules! mutation_root {
                         context: &Context<'_>,
                         command: [<$command_type Command>],
                     ) -> Result<String> {
-                        mutation!(context, command, $aggregate_type, $command_type)
+                        anonymous_mutation!(context, command, $aggregate_type, $command_type)
                     }
                 )*
             }

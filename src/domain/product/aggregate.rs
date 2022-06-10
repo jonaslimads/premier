@@ -48,13 +48,13 @@ impl Aggregate for Product {
             ProductCommand::UpdateProductName(command) => {
                 vec![ProductEvent::ProductNameUpdated { name: command.name }]
             }
-            ProductCommand::UpdateProductSlug(command) => {
-                vec![ProductEvent::ProductSlugUpdated { slug: command.slug }]
-            }
             ProductCommand::UpdateProductDescription(command) => {
                 vec![ProductEvent::ProductDescriptionUpdated {
                     description: command.description,
                 }]
+            }
+            ProductCommand::UpdateProductSlug(command) => {
+                vec![ProductEvent::ProductSlugUpdated { slug: command.slug }]
             }
             ProductCommand::UpdateProductAttachments(command) => {
                 vec![ProductEvent::ProductAttachmentsUpdated {
@@ -184,10 +184,10 @@ impl Aggregate for Product {
                 category_id,
             } => self.category = Some(Category::new(category_id)),
             ProductEvent::ProductNameUpdated { name } => self.name = name,
-            ProductEvent::ProductSlugUpdated { slug } => self.slug = slug,
             ProductEvent::ProductDescriptionUpdated { description } => {
                 self.description = description
             }
+            ProductEvent::ProductSlugUpdated { slug } => self.slug = slug,
             ProductEvent::ProductAttachmentsUpdated { attachments } => {
                 self.attachments = attachments
             }

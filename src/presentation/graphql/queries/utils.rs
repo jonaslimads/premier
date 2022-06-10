@@ -15,12 +15,26 @@ pub type Filter = Option<HashMap<String, String>>;
 
 pub type Ordering = Option<Vec<OrderBy>>;
 
-pub struct SortMap<T>(HashMap<OrderBy, Comparator<T>>);
-
 #[derive(Clone, Debug, Deserialize, Eq, Hash, InputObject, PartialEq, Serialize, SimpleObject)]
 pub struct OrderBy {
     field: String,
     order: Order,
+}
+
+impl OrderBy {
+    pub fn asc(field: &str) -> Self {
+        Self {
+            field: field.to_string(),
+            order: Order::Asc,
+        }
+    }
+
+    pub fn desc(field: &str) -> Self {
+        Self {
+            field: field.to_string(),
+            order: Order::Desc,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Enum, Eq, Hash, PartialEq, Serialize)]
@@ -161,62 +175,62 @@ pub fn get_from_filter(filter: &Filter, key: &str) -> Result<String, Error> {
     }
 }
 
-impl OrderBy {
-    pub fn asc(field: &str) -> Self {
-        Self {
-            field: field.to_string(),
-            order: Order::Asc,
-        }
-    }
-
-    pub fn desc(field: &str) -> Self {
-        Self {
-            field: field.to_string(),
-            order: Order::Desc,
-        }
-    }
+pub struct SortMap<'a, T> {
+    map: HashMap<OrderBy, Comparator<T>>,
+    vec: &'a mut Option<Vec<T>>,
 }
 
-impl<T> SortMap<T>
+impl<'a, T> SortMap<'a, T>
 where
     T: Clone,
 {
-    pub fn new() -> Self {
-        Self(HashMap::new())
+    pub fn new(vec: &'a mut Option<Vec<T>>) -> Self {
+        Self {
+            map: HashMap::new(),
+            vec,
+        }
     }
 
-    pub fn asc(self, field: &str, compare: Comparator<T>) -> Self {
+    pub fn asc(&mut self, field: &str, compare: Comparator<T>) {
         self.add(OrderBy::asc(field), compare)
     }
 
-    pub fn desc(self, field: &str, compare: Comparator<T>) -> Self {
+    pub fn desc(&mut self, field: &str, compare: Comparator<T>) {
         self.add(OrderBy::desc(field), compare)
     }
 
-    pub fn add(mut self, order_by: OrderBy, compare: Comparator<T>) -> Self {
-        self.0.insert(order_by, compare);
-        self
+    pub fn add(&mut self, order_by: OrderBy, compare: Comparator<T>) {
+        self.map.insert(order_by, compare);
     }
 
-    pub fn sort(&mut self, vec: &mut Option<Vec<T>>, sort: &Ordering) {
+    pub fn sort(&mut self, sort: &Ordering) {
         let sort = match sort {
             Some(sort) => sort,
             None => return,
         };
-        let vec = match vec {
+        let vec = match self.vec {
             Some(vec) => vec,
             None => return,
         };
         for order_by in sort {
-            self.sort_by(vec, order_by);
+            if let Some(comparator) = self.map.get_mut(order_by) {
+                vec.sort_by(comparator);
+            }
         }
     }
-
-    fn sort_by(&mut self, vec: &mut Vec<T>, order_by: &OrderBy) {
-        let comparator = match self.0.get_mut(order_by) {
-            Some(comparator) => comparator,
-            None => return,
-        };
-        vec.sort_by(comparator);
-    }
 }
+
+macro_rules! sort {
+    ($vec:expr, $sort:expr, $($field:ident),*) => {{
+        let mut sort_map = crate::presentation::graphql::queries::utils::SortMap::new(&mut $vec);
+        $(
+            {
+                sort_map.asc(stringify!($field), Box::new(|a, b| a.$field.cmp(&b.$field)));
+                sort_map.desc(stringify!($field), Box::new(|a, b| b.$field.cmp(&a.$field)));
+            }
+        )*
+        sort_map.sort(&$sort);
+    }};
+}
+
+pub(crate) use sort;

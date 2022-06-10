@@ -48,7 +48,7 @@ impl ProductViewCategory {
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
 pub struct ProductViewReview {
-    id: String,
+    pub id: String,
 }
 
 // impl ProductViewReview {
@@ -97,6 +97,9 @@ impl View<Product> for ProductView {
             }
             ProductEvent::ProductNameUpdated { name } => {
                 self.name = name.clone();
+            }
+            ProductEvent::ProductDescriptionUpdated { description } => {
+                self.description = description.clone();
             }
             ProductEvent::ProductSlugUpdated { slug } => {
                 self.slug = slug.clone();
