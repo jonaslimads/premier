@@ -3,9 +3,22 @@ use std::sync::Arc;
 use async_graphql::{Context, ErrorExtensions, Object, Result};
 use paste::paste;
 
-use crate::application::order::commands::*;
-use crate::application::product::commands::*;
-use crate::application::vendor::commands::*;
+use crate::application::order::commands::{
+    AddOrderCommand, AddOrderProductCommand, AddOrderProductVariantCommand, ArchiveOrderCommand,
+    OrderCommand, UnarchiveOrderCommand,
+};
+use crate::application::product::commands::{
+    AddProductCommand, AddProductVariantCommand, AddProductVariantStockCommand,
+    AllocateProductStockVariantCommand, ArchiveProductCommand, CategorizeProductCommand,
+    DeallocateProductStockVariantCommand, ProductCommand, ReallocateProductStockVariantCommand,
+    RemoveProductVariantStockCommand, UnarchiveProductCommand, UpdateProductAttachmentsCommand,
+    UpdateProductAttributesCommand, UpdateProductDescriptionCommand, UpdateProductNameCommand,
+    UpdateProductSlugCommand,
+};
+use crate::application::vendor::commands::{
+    AddCategoryCommand, AddVendorCommand, ArchiveVendorCommand, UnarchiveVendorCommand,
+    VendorCommand,
+};
 use crate::domain::order::Order;
 use crate::domain::product::Product;
 use crate::domain::vendor::Vendor;
@@ -112,6 +125,7 @@ mutation_root!(
     product => AddProduct,
     product => ArchiveProduct,
     product => UnarchiveProduct,
+    product => CategorizeProduct,
     product => UpdateProductName,
     product => UpdateProductSlug,
     product => UpdateProductDescription,
@@ -126,6 +140,5 @@ mutation_root!(
     vendor => AddVendor,
     vendor => ArchiveVendor,
     vendor => UnarchiveVendor,
-    vendor => AddCategory,
-    vendor => CategorizeProduct
+    vendor => AddCategory
 );

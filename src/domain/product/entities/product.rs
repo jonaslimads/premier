@@ -1,13 +1,14 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::domain::product::entities::{Variant, Vendor};
+use crate::domain::product::entities::{Category, Variant, Vendor};
 use crate::domain::product::ProductError;
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Product {
     pub id: String,
     pub vendor: Vendor,
+    pub category: Option<Category>,
     pub name: String,
     pub description: String,
     pub slug: String,

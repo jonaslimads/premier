@@ -16,6 +16,7 @@ impl View<Product> for VendorProductsView {
             ProductEvent::ProductAdded {
                 id,
                 vendor_id: _,
+                category_id: _,
                 name,
                 description: _,
                 slug,

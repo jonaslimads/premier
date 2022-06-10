@@ -149,17 +149,13 @@ where
     )
 }
 
-// TODO also search for camel case version of key
 pub fn get_from_filter(filter: &Filter, key: &str) -> Result<String, Error> {
     if let Some(filter) = filter {
-        if let Some(vendor_id) = filter.get(&key.to_string()) {
-            return Ok(vendor_id.clone());
+        if let Some(value) = filter.get(&key.to_string()) {
+            Ok(value.clone())
+        } else {
+            Err(PresentationError::Required(format!("filter {}", key)).extend())
         }
-        // if let Some(vendor_id) = filter.get(&key.to_string()) {
-        //     Ok(vendor_id.clone())
-        // } else {
-        Err(PresentationError::Required(format!("filter {}", key)).extend())
-        // }
     } else {
         Err(PresentationError::Required("filter".to_string()).extend())
     }

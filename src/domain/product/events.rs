@@ -9,6 +9,7 @@ pub enum ProductEvent {
     ProductAdded {
         id: String,
         vendor_id: String,
+        category_id: Option<String>,
         name: String,
         description: String,
         slug: String,
@@ -18,6 +19,10 @@ pub enum ProductEvent {
     },
     ProductArchived {},
     ProductUnarchived {},
+    ProductCategorized {
+        vendor_id: String,
+        category_id: String,
+    },
     ProductNameUpdated {
         name: String,
     },
@@ -74,6 +79,7 @@ impl DomainEvent for ProductEvent {
             ProductEvent::ProductAdded { .. } => "ProductAdded",
             ProductEvent::ProductArchived { .. } => "ProductArchived",
             ProductEvent::ProductUnarchived { .. } => "ProductUnarchived",
+            ProductEvent::ProductCategorized { .. } => "ProductCategorized",
             ProductEvent::ProductNameUpdated { .. } => "ProductNameUpdated",
             ProductEvent::ProductSlugUpdated { .. } => "ProductSlugUpdated",
             ProductEvent::ProductDescriptionUpdated { .. } => "ProductDescriptionUpdated",

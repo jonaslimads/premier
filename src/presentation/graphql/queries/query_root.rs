@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use async_graphql::{Context, Object, Result, SimpleObject};
 
+use crate::application::product::queries::product::{ProductQuery, ProductView};
 use crate::application::vendor::queries::vendor_products::{
     VendorProductsQuery, VendorProductsView, VendorProductsViewCategory, VendorProductsViewProduct,
 };
@@ -45,7 +46,7 @@ impl QueryRoot {
         first: Option<i32>,
         last: Option<i32>,
     ) -> Result<Connection<VendorProductsViewCategory>> {
-        let vendor_id = get_from_filter(&filter, "vendor_id")?;
+        let vendor_id = get_from_filter(&filter, "vendorId")?;
         let query = context.data_unchecked::<Arc<VendorProductsQuery>>().clone();
         let vendor = query.load(vendor_id.as_str()).await.clone();
         let mut categories = vendor.map(|v| v.categories);
@@ -54,25 +55,6 @@ impl QueryRoot {
             .desc("name", Box::new(|a, b| b.name.cmp(&a.name)))
             .sort(&mut categories, &sort);
         query_vec(categories, after, before, first, last).await
-    }
-
-    async fn category(
-        &self,
-        context: &Context<'_>,
-        id: String,
-        filter: Filter,
-    ) -> Result<Option<VendorProductsViewCategory>> {
-        let vendor_id = get_from_filter(&filter, "vendor_id")?;
-        let query = context.data_unchecked::<Arc<VendorProductsQuery>>().clone();
-        let vendor = query.load(vendor_id.as_str()).await.clone();
-        let mut categories = match vendor.map(|v| v.categories) {
-            Some(categories) => categories,
-            None => return Ok(None),
-        };
-        match VendorProductsViewCategory::get_category_mut(&mut categories, id) {
-            Some(category) => Ok(Some(category.clone())),
-            None => return Ok(None),
-        }
     }
 
     async fn products(
@@ -85,8 +67,8 @@ impl QueryRoot {
         first: Option<i32>,
         last: Option<i32>,
     ) -> Result<Connection<VendorProductsViewProduct, ProductAdditionalFields>> {
-        let vendor_id = get_from_filter(&filter, "vendor_id")?;
-        let category_id = get_from_filter(&filter, "category_id")?;
+        let vendor_id = get_from_filter(&filter, "vendorId")?;
+        let category_id = get_from_filter(&filter, "categoryId")?;
         let query = context.data_unchecked::<Arc<VendorProductsQuery>>().clone();
         let vendor = query.load(vendor_id.as_str()).await.clone();
         let mut categories = match vendor.map(|v| v.categories) {
@@ -116,6 +98,30 @@ impl QueryRoot {
             Box::new(move |_| ProductAdditionalFields::new(category_id.clone())),
         )
         .await
+    }
+
+    async fn category(
+        &self,
+        context: &Context<'_>,
+        id: String,
+        filter: Filter,
+    ) -> Result<Option<VendorProductsViewCategory>> {
+        let vendor_id = get_from_filter(&filter, "vendorId")?;
+        let query = context.data_unchecked::<Arc<VendorProductsQuery>>().clone();
+        let vendor = query.load(vendor_id.as_str()).await.clone();
+        let mut categories = match vendor.map(|v| v.categories) {
+            Some(categories) => categories,
+            None => return Ok(None),
+        };
+        match VendorProductsViewCategory::get_category_mut(&mut categories, id) {
+            Some(category) => Ok(Some(category.clone())),
+            None => return Ok(None),
+        }
+    }
+
+    async fn product(&self, context: &Context<'_>, id: String) -> Result<Option<ProductView>> {
+        let query = context.data_unchecked::<Arc<ProductQuery>>().clone();
+        Ok(query.load(id.as_str()).await.clone())
     }
 }
 

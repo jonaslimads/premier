@@ -3,9 +3,22 @@ use paste::paste;
 use serde::Serialize;
 use serde_json::{json, ser::PrettyFormatter, Serializer as JsonSerializer, Value};
 
-use crate::application::order::commands::*;
-use crate::application::product::commands::*;
-use crate::application::vendor::commands::*;
+use crate::application::order::commands::{
+    AddOrderCommand, AddOrderProductCommand, AddOrderProductVariantCommand, ArchiveOrderCommand,
+    OrderCommand, UnarchiveOrderCommand,
+};
+use crate::application::product::commands::{
+    AddProductCommand, AddProductVariantCommand, AddProductVariantStockCommand,
+    AllocateProductStockVariantCommand, ArchiveProductCommand, CategorizeProductCommand,
+    DeallocateProductStockVariantCommand, ProductCommand, ReallocateProductStockVariantCommand,
+    RemoveProductVariantStockCommand, UnarchiveProductCommand, UpdateProductAttachmentsCommand,
+    UpdateProductAttributesCommand, UpdateProductDescriptionCommand, UpdateProductNameCommand,
+    UpdateProductSlugCommand,
+};
+use crate::application::vendor::commands::{
+    AddCategoryCommand, AddVendorCommand, ArchiveVendorCommand, UnarchiveVendorCommand,
+    VendorCommand,
+};
 use crate::presentation::cli::{Cli, Mode};
 use crate::presentation::graphql::start_graphql_server;
 use crate::presentation::service::PresentationService;
@@ -61,7 +74,7 @@ pub async fn parse() -> Result<Option<String>> {
     let (order_startup, product_startup, vendor_startup) =
         startup::start_cqrs_instances(pool.clone()).await;
     let (order_cqrs,) = order_startup;
-    let (product_cqrs,) = product_startup;
+    let (product_cqrs, product_query) = product_startup;
     let (vendor_cqrs, vendor_product_query) = vendor_startup;
 
     match &cli.mode {
@@ -70,7 +83,7 @@ pub async fn parse() -> Result<Option<String>> {
                 config.get_port(),
                 presentation_service,
                 (order_cqrs.clone(),),
-                (product_cqrs.clone(),),
+                (product_cqrs.clone(), product_query.clone()),
                 (vendor_cqrs.clone(), vendor_product_query.clone()),
             )
             .await;
@@ -100,6 +113,7 @@ pub async fn parse() -> Result<Option<String>> {
                 product => AddProduct,
                 product => ArchiveProduct,
                 product => UnarchiveProduct,
+                product => CategorizeProduct,
                 product => UpdateProductName,
                 product => UpdateProductSlug,
                 product => UpdateProductDescription,
@@ -114,8 +128,7 @@ pub async fn parse() -> Result<Option<String>> {
                 vendor => AddVendor,
                 vendor => ArchiveVendor,
                 vendor => UnarchiveVendor,
-                vendor => AddCategory,
-                vendor => CategorizeProduct
+                vendor => AddCategory
             }?;
 
             return pretty_print_json(json!({ "aggregate_id": aggregate_id }));
