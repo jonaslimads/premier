@@ -251,6 +251,13 @@ CREATE TABLE vendor_product_view (
     CONSTRAINT PRIMARY KEY (view_id)
 );
 
+CREATE TABLE product_view (
+    view_id VARCHAR(255) NOT NULL,
+    version BIGINT CHECK (version >= 0),
+    payload JSON NOT NULL,
+    CONSTRAINT PRIMARY KEY (view_id)
+);
+
 -- -----------------------------------
 -- -------------- TEST  --------------
 -- -----------------------------------

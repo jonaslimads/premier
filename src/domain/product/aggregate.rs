@@ -5,7 +5,7 @@ use cqrs_es::Aggregate;
 
 use crate::application::product::commands::ProductCommand;
 use crate::application::product::services::ProductServices;
-use crate::domain::product::entities::{Product, Vendor};
+use crate::domain::product::entities::{Category, Product, Vendor};
 use crate::domain::product::{ProductError, ProductEvent};
 
 #[async_trait]
@@ -31,6 +31,7 @@ impl Aggregate for Product {
             ProductCommand::AddProduct(command) => vec![ProductEvent::ProductAdded {
                 id: command.id,
                 vendor_id: command.vendor_id,
+                category_id: command.category_id,
                 name: command.name,
                 description: command.description,
                 slug: command.slug,
@@ -40,16 +41,20 @@ impl Aggregate for Product {
             }],
             ProductCommand::ArchiveProduct(_) => vec![ProductEvent::ProductArchived {}],
             ProductCommand::UnarchiveProduct(_) => vec![ProductEvent::ProductUnarchived {}],
+            ProductCommand::CategorizeProduct(command) => vec![ProductEvent::ProductCategorized {
+                vendor_id: command.vendor_id,
+                category_id: command.category_id,
+            }],
             ProductCommand::UpdateProductName(command) => {
                 vec![ProductEvent::ProductNameUpdated { name: command.name }]
-            }
-            ProductCommand::UpdateProductSlug(command) => {
-                vec![ProductEvent::ProductSlugUpdated { slug: command.slug }]
             }
             ProductCommand::UpdateProductDescription(command) => {
                 vec![ProductEvent::ProductDescriptionUpdated {
                     description: command.description,
                 }]
+            }
+            ProductCommand::UpdateProductSlug(command) => {
+                vec![ProductEvent::ProductSlugUpdated { slug: command.slug }]
             }
             ProductCommand::UpdateProductAttachments(command) => {
                 vec![ProductEvent::ProductAttachmentsUpdated {
@@ -153,6 +158,7 @@ impl Aggregate for Product {
             ProductEvent::ProductAdded {
                 id,
                 vendor_id,
+                category_id,
                 name,
                 description,
                 slug,
@@ -161,7 +167,8 @@ impl Aggregate for Product {
                 attributes,
             } => {
                 self.id = id;
-                self.vendor = Vendor { id: vendor_id };
+                self.vendor = Vendor::new(vendor_id);
+                self.category = category_id.map(|id| Category::new(id));
                 self.name = name;
                 self.description = description;
                 self.slug = slug;
@@ -172,11 +179,15 @@ impl Aggregate for Product {
             }
             ProductEvent::ProductArchived {} => self.is_archived = true,
             ProductEvent::ProductUnarchived {} => self.is_archived = false,
+            ProductEvent::ProductCategorized {
+                vendor_id: _,
+                category_id,
+            } => self.category = Some(Category::new(category_id)),
             ProductEvent::ProductNameUpdated { name } => self.name = name,
-            ProductEvent::ProductSlugUpdated { slug } => self.slug = slug,
             ProductEvent::ProductDescriptionUpdated { description } => {
                 self.description = description
             }
+            ProductEvent::ProductSlugUpdated { slug } => self.slug = slug,
             ProductEvent::ProductAttachmentsUpdated { attachments } => {
                 self.attachments = attachments
             }
@@ -403,6 +414,7 @@ mod aggregate_tests {
         ProductEvent::ProductAdded {
             id: PRODUCT_ID.to_string(),
             vendor_id: VENDOR_ID.to_string(),
+            category_id: None,
             name: "".to_string(),
             description: "".to_string(),
             slug: "".to_string(),

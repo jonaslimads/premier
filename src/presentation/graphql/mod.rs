@@ -21,13 +21,14 @@ pub async fn start_graphql_server(
     port: u16,
     presentation_service: Arc<PresentationService>,
     (order_cqrs,): OrderStartup,
-    (product_cqrs,): ProductStartup,
+    (product_cqrs, product_query): ProductStartup,
     (vendor_cqrs, vendor_product_query): VendorStartup,
 ) {
     let schema = Schema::build(QueryRoot, MutationRoot, EmptySubscription)
         .data(presentation_service)
         .data(order_cqrs)
         .data(product_cqrs)
+        .data(product_query)
         .data(vendor_cqrs)
         .data(vendor_product_query)
         .finish();

@@ -75,14 +75,15 @@ where
         view_id: &str,
         events: &[EventEnvelope<A>],
     ) -> Result<(), PersistenceError> {
-        let mut view: V = Default::default();
-        for event in events {
-            view.update(event);
-        }
-        let view_context = ViewContext::new(view_id.to_string(), 0);
-        self.view_repository.delete_view(view_id).await?;
-        self.view_repository.update_view(view, view_context).await?;
-        Ok(())
+        todo!()
+        // let mut view: V = Default::default();
+        // for event in events {
+        //     view.update(event);
+        // }
+        // let view_context = ViewContext::new(view_id.to_string(), 0);
+        // self.view_repository.delete_view(view_id).await?;
+        // self.view_repository.update_view(view, view_context).await?;
+        // Ok(())
     }
 
     pub fn handle_error(&self, error: PersistenceError) {
