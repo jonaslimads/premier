@@ -38,6 +38,8 @@ pub struct VendorProductsViewProduct {
     pub slug: String,
     pub currency: String,
     pub price: u32,
+    pub attachments: Vec<String>,
+    pub attributes: Value,
     pub is_archived: bool,
 }
 
@@ -83,6 +85,13 @@ pub type VendorProductsQuery =
     GenericQuery<MysqlViewRepository<VendorProductsView, Vendor>, VendorProductsView, Vendor>;
 
 impl VendorProductsView {
+    pub fn get_all_products(&mut self) -> Vec<VendorProductsViewProduct> {
+        let categories = &mut self.categories;
+        let mut all_products = VendorProductsViewCategory::get_products(categories);
+        all_products.append(&mut self.uncategorized_products);
+        all_products
+    }
+
     pub fn add_category(
         &mut self,
         category: VendorProductsViewCategory,
@@ -124,6 +133,7 @@ impl VendorProductsView {
         }
         None
     }
+
     pub fn get_product_mut(
         &mut self,
         product_id: String,
@@ -171,6 +181,16 @@ impl VendorProductsViewCategory {
             }
         }
         None
+    }
+
+    pub fn get_products(categories: &mut Vec<Self>) -> Vec<VendorProductsViewProduct> {
+        let mut products: Vec<VendorProductsViewProduct> = Vec::new();
+        for category in categories {
+            products.append(&mut category.products);
+            let mut children_products = Self::get_products(&mut category.children);
+            products.append(&mut children_products);
+        }
+        products
     }
 
     pub fn add_category(categories: &mut Vec<Self>, category: Self) {

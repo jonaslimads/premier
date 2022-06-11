@@ -164,14 +164,18 @@ where
 }
 
 pub fn get_from_filter(filter: &Filter, key: &str) -> Result<String, Error> {
-    if let Some(filter) = filter {
-        if let Some(value) = filter.get(&key.to_string()) {
-            Ok(value.clone())
-        } else {
-            Err(PresentationError::Required(format!("filter {}", key)).extend())
-        }
+    if let Some(value) = opt_from_filter(filter, key) {
+        Ok(value)
     } else {
-        Err(PresentationError::Required("filter".to_string()).extend())
+        Err(PresentationError::Required(format!("filter {}", key)).extend())
+    }
+}
+
+pub fn opt_from_filter(filter: &Filter, key: &str) -> Option<String> {
+    if let Some(filter) = filter {
+        filter.get(&key.to_string()).map(|v| v.clone())
+    } else {
+        None
     }
 }
 

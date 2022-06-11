@@ -7,8 +7,8 @@ use crate::application::vendor::queries::vendor_products::{
     VendorProductsQuery, VendorProductsView, VendorProductsViewCategory, VendorProductsViewProduct,
 };
 use crate::presentation::graphql::queries::utils::{
-    empty_connection, get_from_filter, query_vec, query_vec_with_additional_fields, sort,
-    Connection, Filter, Ordering,
+    empty_connection, get_from_filter, opt_from_filter, query_vec,
+    query_vec_with_additional_fields, sort, Connection, Filter, Ordering,
 };
 
 pub struct QueryRoot;
@@ -65,21 +65,28 @@ impl QueryRoot {
         last: Option<i32>,
     ) -> Result<Connection<VendorProductsViewProduct, ProductAdditionalFields>> {
         let vendor_id = get_from_filter(&filter, "vendorId")?;
-        let category_id = get_from_filter(&filter, "categoryId")?;
+        let category_id = opt_from_filter(&filter, "categoryId");
         let query = context.data_unchecked::<Arc<VendorProductsQuery>>().clone();
         let vendor = query.load(vendor_id.as_str()).await.clone();
-        let mut categories = match vendor.map(|v| v.categories) {
-            Some(categories) => categories,
+        let mut vendor = match vendor {
+            Some(vendor) => vendor,
             None => return Ok(empty_connection()),
         };
-        let category = match VendorProductsViewCategory::get_category_mut(
-            &mut categories,
-            category_id.clone(),
-        ) {
-            Some(category) => category,
-            None => return Ok(empty_connection()),
+
+        let (mut products, category_id) = if let Some(category_id) = category_id {
+            let mut categories = vendor.categories;
+            let category = match VendorProductsViewCategory::get_category_mut(
+                &mut categories,
+                category_id.clone(),
+            ) {
+                Some(category) => category,
+                None => return Ok(empty_connection()),
+            };
+            (Some(category.products.clone()), category_id.clone())
+        } else {
+            (Some(vendor.get_all_products()), "".to_string())
         };
-        let mut products = Some(category.products.clone());
+
         sort!(products, sort, id, name);
         query_vec_with_additional_fields(
             products,

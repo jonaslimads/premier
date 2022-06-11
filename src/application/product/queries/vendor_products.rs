@@ -21,14 +21,16 @@ impl View<Product> for VendorProductsView {
                 description: _,
                 slug,
                 currency,
-                attachments: _,
-                attributes: _,
+                attachments,
+                attributes,
             } => self.uncategorized_products.push(VendorProductsViewProduct {
                 id: id.clone(),
                 name: name.clone(),
                 slug: slug.clone(),
                 currency: currency.clone(),
                 price: 0,
+                attachments: attachments.clone(),
+                attributes: attributes.clone(),
                 is_archived: false,
             }),
             ProductEvent::ProductArchived {} => {

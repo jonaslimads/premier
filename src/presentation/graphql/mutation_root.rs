@@ -76,17 +76,17 @@ macro_rules! anonymous_mutation {
     }};
 }
 
-macro_rules! mutation {
-    ($context:expr, $command:expr, $aggregate_type:ident, $command_type:ident) => {{
-        mutation_base!(
-            $context,
-            $command,
-            $aggregate_type,
-            $command_type,
-            parse_session
-        )
-    }};
-}
+// macro_rules! mutation {
+//     ($context:expr, $command:expr, $aggregate_type:ident, $command_type:ident) => {{
+//         mutation_base!(
+//             $context,
+//             $command,
+//             $aggregate_type,
+//             $command_type,
+//             parse_session
+//         )
+//     }};
+// }
 
 macro_rules! mutation_root {
     ($($aggregate_type:ident => $command_type:ident),*) => {
