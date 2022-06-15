@@ -14,12 +14,12 @@ pub struct VendorProductsView {
     pub name: String,
     pub attributes: Value,
     pub is_archived: bool,
-    pub categories: Vec<VendorProductsViewCategory>,
-    pub uncategorized_products: Vec<VendorProductsViewProduct>,
+    pub groups: Vec<VendorProductsViewGroup>,
+    pub ungroupd_products: Vec<VendorProductsViewProduct>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
-pub struct VendorProductsViewCategory {
+pub struct VendorProductsViewGroup {
     pub id: String,
     pub name: String,
     pub slug: String,
@@ -27,7 +27,7 @@ pub struct VendorProductsViewCategory {
     pub order: u16,
     #[graphql(skip)]
     pub is_archived: bool,
-    pub children: Vec<VendorProductsViewCategory>,
+    pub children: Vec<VendorProductsViewGroup>,
     pub products: Vec<VendorProductsViewProduct>,
 }
 
@@ -58,25 +58,20 @@ impl View<Vendor> for VendorProductsView {
             }
             VendorEvent::VendorArchived {} => self.is_archived = true,
             VendorEvent::VendorUnarchived {} => self.is_archived = false,
-            VendorEvent::CategoryAdded {
-                category_id,
+            VendorEvent::GroupAdded {
+                group_id,
                 name,
                 slug,
                 order,
-                parent_category_id,
-            } => self.add_category(
-                VendorProductsViewCategory::new(
-                    category_id.clone(),
-                    name.clone(),
-                    slug.clone(),
-                    *order,
-                ),
-                parent_category_id.clone(),
+                parent_group_id,
+            } => self.add_group(
+                VendorProductsViewGroup::new(group_id.clone(), name.clone(), slug.clone(), *order),
+                parent_group_id.clone(),
             ),
-            VendorEvent::ProductCategorized {
-                category_id,
+            VendorEvent::ProductGrouped {
+                group_id,
                 product_id,
-            } => self.categorize_product(category_id.clone(), product_id.clone()),
+            } => self.group_product(group_id.clone(), product_id.clone()),
         }
     }
 }
@@ -86,48 +81,43 @@ pub type VendorProductsQuery =
 
 impl VendorProductsView {
     pub fn get_all_products(&mut self) -> Vec<VendorProductsViewProduct> {
-        let categories = &mut self.categories;
-        let mut all_products = VendorProductsViewCategory::get_products(categories);
-        all_products.append(&mut self.uncategorized_products);
+        let groups = &mut self.groups;
+        let mut all_products = VendorProductsViewGroup::get_products(groups);
+        all_products.append(&mut self.ungroupd_products);
         all_products
     }
 
-    pub fn add_category(
-        &mut self,
-        category: VendorProductsViewCategory,
-        parent_category_id: Option<String>,
-    ) {
-        let categories = &mut self.categories;
-        if let Some(parent_id) = parent_category_id {
-            if let Some(parent_category) =
-                VendorProductsViewCategory::get_category_mut(&mut self.categories, parent_id)
+    pub fn add_group(&mut self, group: VendorProductsViewGroup, parent_group_id: Option<String>) {
+        let groups = &mut self.groups;
+        if let Some(parent_id) = parent_group_id {
+            if let Some(parent_group) =
+                VendorProductsViewGroup::get_group_mut(&mut self.groups, parent_id)
             {
-                VendorProductsViewCategory::add_category(&mut parent_category.children, category);
+                VendorProductsViewGroup::add_group(&mut parent_group.children, group);
             }
         } else {
-            VendorProductsViewCategory::add_category(categories, category);
+            VendorProductsViewGroup::add_group(groups, group);
         }
     }
 
-    pub fn categorize_product(&mut self, category_id: String, product_id: String) {
+    pub fn group_product(&mut self, group_id: String, product_id: String) {
         if let Some(product) = self.remove_product(product_id) {
-            if let Some(category) =
-                VendorProductsViewCategory::get_category_mut(&mut self.categories, category_id)
+            if let Some(group) = VendorProductsViewGroup::get_group_mut(&mut self.groups, group_id)
             {
-                category.add_product(product);
+                group.add_product(product);
             }
         }
     }
 
     pub fn remove_product(&mut self, product_id: String) -> Option<VendorProductsViewProduct> {
         if let Some(product) = VendorProductsViewProduct::remove_product(
-            &mut self.uncategorized_products,
+            &mut self.ungroupd_products,
             product_id.clone(),
         ) {
             return Some(product);
         }
-        for category in &mut self.categories {
-            if let Some(product) = category.remove_product(product_id.clone()) {
+        for group in &mut self.groups {
+            if let Some(product) = group.remove_product(product_id.clone()) {
                 return Some(product);
             }
         }
@@ -139,13 +129,13 @@ impl VendorProductsView {
         product_id: String,
     ) -> Option<&mut VendorProductsViewProduct> {
         if let Some(product) = VendorProductsViewProduct::get_product_mut(
-            &mut self.uncategorized_products,
+            &mut self.ungroupd_products,
             product_id.clone(),
         ) {
             return Some(product);
         }
-        for category in &mut self.categories {
-            if let Some(product) = category.get_product_mut(product_id.clone()) {
+        for group in &mut self.groups {
+            if let Some(product) = group.get_product_mut(product_id.clone()) {
                 return Some(product);
             }
         }
@@ -153,7 +143,7 @@ impl VendorProductsView {
     }
 }
 
-impl VendorProductsViewCategory {
+impl VendorProductsViewGroup {
     pub fn new(id: String, name: String, slug: String, order: u16) -> Self {
         Self {
             id,
@@ -166,38 +156,30 @@ impl VendorProductsViewCategory {
         }
     }
 
-    pub fn get_category_mut<'a>(
-        categories: &'a mut Vec<Self>,
-        category_id: String,
-    ) -> Option<&'a mut Self> {
-        for category in categories {
-            if category.id == category_id.clone() {
-                return Some(category);
+    pub fn get_group_mut<'a>(groups: &'a mut Vec<Self>, group_id: String) -> Option<&'a mut Self> {
+        for group in groups {
+            if group.id == group_id.clone() {
+                return Some(group);
             }
-            if let Some(child_category) =
-                Self::get_category_mut(&mut category.children, category_id.clone())
-            {
-                return Some(child_category);
+            if let Some(child_group) = Self::get_group_mut(&mut group.children, group_id.clone()) {
+                return Some(child_group);
             }
         }
         None
     }
 
-    pub fn get_products(categories: &mut Vec<Self>) -> Vec<VendorProductsViewProduct> {
+    pub fn get_products(groups: &mut Vec<Self>) -> Vec<VendorProductsViewProduct> {
         let mut products: Vec<VendorProductsViewProduct> = Vec::new();
-        for category in categories {
-            products.append(&mut category.products);
-            let mut children_products = Self::get_products(&mut category.children);
+        for group in groups {
+            products.append(&mut group.products);
+            let mut children_products = Self::get_products(&mut group.children);
             products.append(&mut children_products);
         }
         products
     }
 
-    pub fn add_category(categories: &mut Vec<Self>, category: Self) {
-        categories.insert(
-            Self::get_insertion_position(&categories, &category),
-            category,
-        )
+    pub fn add_group(groups: &mut Vec<Self>, group: Self) {
+        groups.insert(Self::get_insertion_position(&groups, &group), group)
     }
 
     pub fn add_product(&mut self, product: VendorProductsViewProduct) {
@@ -210,8 +192,8 @@ impl VendorProductsViewCategory {
         {
             return Some(product);
         }
-        for category in &mut self.children {
-            if let Some(product) = category.remove_product(product_id.clone()) {
+        for group in &mut self.children {
+            if let Some(product) = group.remove_product(product_id.clone()) {
                 return Some(product);
             }
         }
@@ -224,19 +206,19 @@ impl VendorProductsViewCategory {
         {
             return Some(product);
         }
-        for category in &mut self.children {
-            if let Some(product) = category.get_product_mut(product_id.clone()) {
+        for group in &mut self.children {
+            if let Some(product) = group.get_product_mut(product_id.clone()) {
                 return Some(product);
             }
         }
         None
     }
 
-    fn get_insertion_position(categories: &Vec<Self>, new_category: &Self) -> usize {
+    fn get_insertion_position(groups: &Vec<Self>, new_group: &Self) -> usize {
         let mut i = 0_usize;
-        for category in categories {
-            if (new_category.order < category.order)
-                || (new_category.order == category.order && new_category.name < category.name)
+        for group in groups {
+            if (new_group.order < group.order)
+                || (new_group.order == group.order && new_group.name < group.name)
             {
                 return i;
             }

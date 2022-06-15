@@ -7,17 +7,19 @@ use crate::application::order::commands::{
     AddOrderCommand, AddOrderProductCommand, AddOrderProductVariantCommand, ArchiveOrderCommand,
     OrderCommand, UnarchiveOrderCommand,
 };
+use crate::application::platform::commands::{
+    AddPlatformCommand, PlatformCommand, UpdatePlatformAttributesCommand, UpdatePlatformNameCommand,
+};
 use crate::application::product::commands::{
     AddProductCommand, AddProductVariantCommand, AddProductVariantStockCommand,
     AllocateProductStockVariantCommand, ArchiveProductCommand, CategorizeProductCommand,
-    DeallocateProductStockVariantCommand, ProductCommand, ReallocateProductStockVariantCommand,
-    RemoveProductVariantStockCommand, UnarchiveProductCommand, UpdateProductAttachmentsCommand,
-    UpdateProductAttributesCommand, UpdateProductDescriptionCommand, UpdateProductNameCommand,
-    UpdateProductSlugCommand,
+    DeallocateProductStockVariantCommand, GroupProductCommand, ProductCommand,
+    ReallocateProductStockVariantCommand, RemoveProductVariantStockCommand,
+    UnarchiveProductCommand, UpdateProductAttachmentsCommand, UpdateProductAttributesCommand,
+    UpdateProductDescriptionCommand, UpdateProductNameCommand, UpdateProductSlugCommand,
 };
 use crate::application::vendor::commands::{
-    AddCategoryCommand, AddVendorCommand, ArchiveVendorCommand, UnarchiveVendorCommand,
-    VendorCommand,
+    AddGroupCommand, AddVendorCommand, ArchiveVendorCommand, UnarchiveVendorCommand, VendorCommand,
 };
 use crate::presentation::cli::{Cli, Mode};
 use crate::presentation::graphql::start_graphql_server;
@@ -28,6 +30,7 @@ macro_rules! match_commands {
     (
         $presentation_service:expr,
         $order_cqrs:expr,
+        $platform_cqrs:expr,
         $product_cqrs:expr,
         $vendor_cqrs:expr,
         $command:expr,
@@ -35,6 +38,7 @@ macro_rules! match_commands {
         $($aggregate_type:ident => $command_type:ident),*
     ) => {{
         let order_cqrs = $order_cqrs;
+        let platform_cqrs = $platform_cqrs;
         let product_cqrs = $product_cqrs;
         let vendor_cqrs = $vendor_cqrs;
         match $command.as_str() {
@@ -71,9 +75,10 @@ pub async fn parse() -> Result<Option<String>> {
         .into_provider();
     let presentation_service = PresentationService::new(pool.clone(), keycloak);
 
-    let (order_startup, product_startup, vendor_startup) =
+    let (order_startup, platform_startup, product_startup, vendor_startup) =
         startup::start_cqrs_instances(pool.clone()).await;
     let (order_cqrs,) = order_startup;
+    let (platform_cqrs,) = platform_startup;
     let (product_cqrs, product_query) = product_startup;
     let (vendor_cqrs, vendor_product_query) = vendor_startup;
 
@@ -83,6 +88,7 @@ pub async fn parse() -> Result<Option<String>> {
                 config.get_port(),
                 presentation_service,
                 (order_cqrs.clone(),),
+                (platform_cqrs.clone(),),
                 (product_cqrs.clone(), product_query.clone()),
                 (vendor_cqrs.clone(), vendor_product_query.clone()),
             )
@@ -101,6 +107,7 @@ pub async fn parse() -> Result<Option<String>> {
             let aggregate_id = match_commands! {
                 presentation_service,
                 order_cqrs,
+                platform_cqrs,
                 product_cqrs,
                 vendor_cqrs,
                 command,
@@ -110,10 +117,14 @@ pub async fn parse() -> Result<Option<String>> {
                 order => UnarchiveOrder,
                 order => AddOrderProduct,
                 order => AddOrderProductVariant,
+                platform => AddPlatform,
+                platform => UpdatePlatformName,
+                platform => UpdatePlatformAttributes,
                 product => AddProduct,
                 product => ArchiveProduct,
                 product => UnarchiveProduct,
                 product => CategorizeProduct,
+                product => GroupProduct,
                 product => UpdateProductName,
                 product => UpdateProductSlug,
                 product => UpdateProductDescription,
@@ -128,7 +139,7 @@ pub async fn parse() -> Result<Option<String>> {
                 vendor => AddVendor,
                 vendor => ArchiveVendor,
                 vendor => UnarchiveVendor,
-                vendor => AddCategory
+                vendor => AddGroup
             }?;
 
             return pretty_print_json(json!({ "aggregate_id": aggregate_id }));

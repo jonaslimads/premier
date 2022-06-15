@@ -9,6 +9,10 @@ use crate::infrastructure::{cqrs, ConnectionPool, Cqrs, ViewRepository};
 use crate::application::order::services::OrderServices;
 use crate::domain::order::Order;
 
+use crate::application::platform::queries::SimpleLoggingQuery as PlatformSimpleLoggingQuery;
+use crate::application::platform::services::PlatformServices;
+use crate::domain::platform::Platform;
+
 use crate::application::product::queries::{
     DownstreamCqrs as ProductDownstreamCqrs, ProductQuery,
     SimpleLoggingQuery as ProductSimpleLoggingQuery, VendorProductsQueryFromProduct,
@@ -23,18 +27,22 @@ use crate::domain::vendor::Vendor;
 use crate::infrastructure::vendor::services::VendorApi;
 
 pub type OrderStartup = (Arc<Cqrs<Order>>,);
+pub type PlatformStartup = (Arc<Cqrs<Platform>>,);
 pub type ProductStartup = (Arc<Cqrs<Product>>, Arc<ProductQuery>);
 pub type VendorStartup = (Arc<Cqrs<Vendor>>, Arc<VendorProductsQuery>);
 
 pub async fn start_cqrs_instances(
     pool: ConnectionPool,
-) -> (OrderStartup, ProductStartup, VendorStartup) {
+) -> (OrderStartup, PlatformStartup, ProductStartup, VendorStartup) {
     let (order_cqrs,) = order_cqrs(pool.clone()).await;
+    let (platform_cqrs,) = platform_cqrs(pool.clone()).await;
     let (product_cqrs, product_query) = product_cqrs(pool.clone()).await;
     let (vendor_cqrs, vendor_products_query) = vendor_cqrs(pool.clone()).await;
 
-    let product_cqrs =
-        product_cqrs.append_query(Box::new(ProductDownstreamCqrs::new(vendor_cqrs.clone())));
+    let product_cqrs = product_cqrs.append_query(Box::new(ProductDownstreamCqrs::new(
+        platform_cqrs.clone(),
+        vendor_cqrs.clone(),
+    )));
 
     // let product_cqrs = Arc::new(product_cqrs);
     // let vendor_cqrs = Arc::new(vendor_cqrs);
@@ -47,6 +55,7 @@ pub async fn start_cqrs_instances(
 
     (
         (order_cqrs,),
+        (platform_cqrs,),
         (Arc::new(product_cqrs), product_query),
         (vendor_cqrs, vendor_products_query),
     )
@@ -83,6 +92,27 @@ pub async fn vendor_cqrs(pool: ConnectionPool) -> VendorStartup {
         Arc::new(framework),
         Arc::new(VendorProductsQuery::new(vendor_products_repository)),
     )
+}
+
+pub async fn platform_cqrs(pool: ConnectionPool) -> (Arc<Cqrs<Platform>>,) {
+    let services = PlatformServices::new();
+
+    // let vendor_products_repository =
+    //     Arc::new(ViewRepository::new("vendor_product_view", pool.clone()));
+    // let product_repository = Arc::new(ViewRepository::new("product_view", pool.clone()));
+
+    let queries: Vec<Box<dyn Query<Platform>>> = vec![
+        Box::new(PlatformSimpleLoggingQuery {}),
+        // Box::new(VendorProductsQueryFromProduct::new(
+        //     vendor_products_repository,
+        //     services.clone(),
+        // )),
+        // Box::new(ProductQuery::new(product_repository.clone())),
+    ];
+
+    let framework = cqrs(pool, "platform_event", queries, services).await;
+
+    (Arc::new(framework),)
 }
 
 pub async fn product_cqrs(pool: ConnectionPool) -> (Cqrs<Product>, Arc<ProductQuery>) {

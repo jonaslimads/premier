@@ -12,7 +12,7 @@ use crate::domain::product::Product;
 pub struct ProductView {
     pub id: String,
     pub vendor: ProductViewVendor,
-    pub category: Option<ProductViewCategory>,
+    pub group: Option<ProductViewGroup>,
     pub name: String,
     pub description: String,
     pub slug: String,
@@ -36,11 +36,11 @@ impl ProductViewVendor {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
-pub struct ProductViewCategory {
+pub struct ProductViewGroup {
     id: String,
 }
 
-impl ProductViewCategory {
+impl ProductViewGroup {
     pub fn new(id: String) -> Self {
         Self { id }
     }
@@ -63,7 +63,8 @@ impl View<Product> for ProductView {
             ProductEvent::ProductAdded {
                 id,
                 vendor_id,
-                category_id,
+                category_id: _,
+                group_id,
                 name,
                 description,
                 slug,
@@ -73,7 +74,7 @@ impl View<Product> for ProductView {
             } => {
                 self.id = id.clone();
                 self.vendor = ProductViewVendor::new(vendor_id.clone());
-                self.category = category_id.clone().map(|id| ProductViewCategory::new(id));
+                self.group = group_id.clone().map(|id| ProductViewGroup::new(id));
                 self.name = name.clone();
                 self.description = description.clone();
                 self.slug = slug.clone();
@@ -89,11 +90,11 @@ impl View<Product> for ProductView {
             ProductEvent::ProductUnarchived {} => {
                 self.is_archived = false;
             }
-            ProductEvent::ProductCategorized {
+            ProductEvent::ProductGrouped {
                 vendor_id: _,
-                category_id,
+                group_id,
             } => {
-                self.category = Some(ProductViewCategory::new(category_id.clone()));
+                self.group = Some(ProductViewGroup::new(group_id.clone()));
             }
             ProductEvent::ProductNameUpdated { name } => {
                 self.name = name.clone();

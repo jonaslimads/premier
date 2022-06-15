@@ -7,25 +7,29 @@ use crate::application::order::commands::{
     AddOrderCommand, AddOrderProductCommand, AddOrderProductVariantCommand, ArchiveOrderCommand,
     OrderCommand, UnarchiveOrderCommand,
 };
+use crate::application::platform::commands::{
+    AddPlatformCommand, PlatformCommand, UpdatePlatformAttributesCommand, UpdatePlatformNameCommand,
+};
 use crate::application::product::commands::{
     AddProductCommand, AddProductVariantCommand, AddProductVariantStockCommand,
     AllocateProductStockVariantCommand, ArchiveProductCommand, CategorizeProductCommand,
-    DeallocateProductStockVariantCommand, ProductCommand, ReallocateProductStockVariantCommand,
-    RemoveProductVariantStockCommand, UnarchiveProductCommand, UpdateProductAttachmentsCommand,
-    UpdateProductAttributesCommand, UpdateProductDescriptionCommand, UpdateProductNameCommand,
-    UpdateProductSlugCommand,
+    DeallocateProductStockVariantCommand, GroupProductCommand, ProductCommand,
+    ReallocateProductStockVariantCommand, RemoveProductVariantStockCommand,
+    UnarchiveProductCommand, UpdateProductAttachmentsCommand, UpdateProductAttributesCommand,
+    UpdateProductDescriptionCommand, UpdateProductNameCommand, UpdateProductSlugCommand,
 };
 use crate::application::vendor::commands::{
-    AddCategoryCommand, AddVendorCommand, ArchiveVendorCommand, UnarchiveVendorCommand,
-    VendorCommand,
+    AddGroupCommand, AddVendorCommand, ArchiveVendorCommand, UnarchiveVendorCommand, VendorCommand,
 };
 use crate::domain::order::Order;
+use crate::domain::platform::Platform;
 use crate::domain::product::Product;
 use crate::domain::vendor::Vendor;
 use crate::infrastructure::{auth, Cqrs};
 use crate::presentation::{PresentationError, PresentationService};
 
 type CqrsOrder = Arc<Cqrs<Order>>;
+type CqrsPlatform = Arc<Cqrs<Platform>>;
 type CqrsProduct = Arc<Cqrs<Product>>;
 type CqrsVendor = Arc<Cqrs<Vendor>>;
 
@@ -122,10 +126,14 @@ mutation_root!(
     order => UnarchiveOrder,
     order => AddOrderProduct,
     order => AddOrderProductVariant,
+    platform => AddPlatform,
+    platform => UpdatePlatformName,
+    platform => UpdatePlatformAttributes,
     product => AddProduct,
     product => ArchiveProduct,
     product => UnarchiveProduct,
     product => CategorizeProduct,
+    product => GroupProduct,
     product => UpdateProductName,
     product => UpdateProductSlug,
     product => UpdateProductDescription,
@@ -140,5 +148,5 @@ mutation_root!(
     vendor => AddVendor,
     vendor => ArchiveVendor,
     vendor => UnarchiveVendor,
-    vendor => AddCategory
+    vendor => AddGroup
 );

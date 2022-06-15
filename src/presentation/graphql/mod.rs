@@ -12,7 +12,7 @@ pub mod queries;
 
 pub use crate::domain::{order::Order, product::Product, vendor::Vendor};
 pub use crate::infrastructure::{auth::SessionIntent, ConnectionPool, Cqrs};
-use crate::presentation::startup::{OrderStartup, ProductStartup, VendorStartup};
+use crate::presentation::startup::{OrderStartup, PlatformStartup, ProductStartup, VendorStartup};
 use crate::presentation::PresentationService;
 pub use mutation_root::MutationRoot;
 pub use queries::query_root::QueryRoot;
@@ -21,12 +21,14 @@ pub async fn start_graphql_server(
     port: u16,
     presentation_service: Arc<PresentationService>,
     (order_cqrs,): OrderStartup,
+    (platform_cqrs,): PlatformStartup,
     (product_cqrs, product_query): ProductStartup,
     (vendor_cqrs, vendor_product_query): VendorStartup,
 ) {
     let schema = Schema::build(QueryRoot, MutationRoot, EmptySubscription)
         .data(presentation_service)
         .data(order_cqrs)
+        .data(platform_cqrs)
         .data(product_cqrs)
         .data(product_query)
         .data(vendor_cqrs)

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::domain::vendor::entities::Category;
+use crate::domain::vendor::entities::Group;
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Vendor {
@@ -10,28 +10,28 @@ pub struct Vendor {
     pub slug: String,
     pub attributes: Value,
     pub is_archived: bool,
-    pub categories: Vec<Category>,
+    pub groups: Vec<Group>,
 }
 
 impl Vendor {
-    pub fn add_category(&mut self, category: Category, parent_category_id: Option<String>) {
-        let categories = &mut self.categories;
-        if let Some(parent_id) = parent_category_id {
-            if let Some(parent_category) = self.get_category_mut(parent_id) {
-                Category::add_category(&mut parent_category.children, category);
+    pub fn add_group(&mut self, group: Group, parent_group_id: Option<String>) {
+        let groups = &mut self.groups;
+        if let Some(parent_id) = parent_group_id {
+            if let Some(parent_group) = self.get_group_mut(parent_id) {
+                Group::add_group(&mut parent_group.children, group);
             }
         } else {
-            Category::add_category(categories, category);
+            Group::add_group(groups, group);
         }
     }
 
-    pub fn categorize_product(&mut self, category_id: String, product_id: String) {
-        if let Some(category) = self.get_category_mut(category_id) {
-            category.add_product(product_id);
+    pub fn group_product(&mut self, group_id: String, product_id: String) {
+        if let Some(group) = self.get_group_mut(group_id) {
+            group.add_product(product_id);
         }
     }
 
-    fn get_category_mut<'a>(&'a mut self, category_id: String) -> Option<&'a mut Category> {
-        Category::get_category_mut(&mut self.categories, category_id)
+    fn get_group_mut<'a>(&'a mut self, group_id: String) -> Option<&'a mut Group> {
+        Group::get_group_mut(&mut self.groups, group_id)
     }
 }

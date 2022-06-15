@@ -5,6 +5,7 @@ use cqrs_es::AggregateError;
 use thiserror::Error;
 
 use crate::domain::order::error::OrderError;
+use crate::domain::platform::error::PlatformError;
 use crate::domain::product::error::ProductError;
 use crate::domain::vendor::error::VendorError;
 use crate::infrastructure::InfrastructureError;
@@ -15,6 +16,9 @@ pub type Result<T> = std::result::Result<T, PresentationError>;
 pub enum PresentationError {
     #[error("Order error: {0}")]
     Order(Arc<AggregateError<OrderError>>),
+
+    #[error("Platform error: {0}")]
+    Platform(Arc<AggregateError<PlatformError>>),
 
     #[error("Product error: {0}")]
     Product(Arc<AggregateError<ProductError>>),
@@ -51,6 +55,13 @@ impl From<AggregateError<OrderError>> for PresentationError {
     #[inline]
     fn from(error: AggregateError<OrderError>) -> Self {
         Self::Order(Arc::new(error))
+    }
+}
+
+impl From<AggregateError<PlatformError>> for PresentationError {
+    #[inline]
+    fn from(error: AggregateError<PlatformError>) -> Self {
+        Self::Platform(Arc::new(error))
     }
 }
 
