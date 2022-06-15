@@ -24,12 +24,7 @@ impl DownstreamCqrs {
         }
     }
 
-    pub async fn group_product_on_vendor(
-        &self,
-        vendor_id: String,
-        group_id: String,
-        product_id: String,
-    ) {
+    pub async fn group_product(&self, vendor_id: String, group_id: String, product_id: String) {
         let vendor_id = vendor_id.clone();
         let command = VendorCommand::GroupProduct(GroupProductCommand {
             id: vendor_id.clone(),
@@ -39,21 +34,21 @@ impl DownstreamCqrs {
         let _ = self.vendor_cqrs.execute(vendor_id.as_str(), command).await;
     }
 
-    pub async fn categorize_product_on_platform(
+    pub async fn categorize_product(
         &self,
-        vendor_id: String,
+        platform_id: String,
         category_id: String,
         product_id: String,
     ) {
-        let vendor_id = vendor_id.clone();
+        let platform_id = platform_id.clone();
         let command = PlatformCommand::CategorizeProduct(CategorizeProductCommand {
-            id: vendor_id.clone(),
+            id: platform_id.clone(),
             category_id: category_id.clone(),
             product_id: product_id.to_string(),
         });
         let _ = self
             .platform_cqrs
-            .execute(vendor_id.as_str(), command)
+            .execute(platform_id.as_str(), command)
             .await;
     }
 }
@@ -64,12 +59,22 @@ impl Query<Product> for DownstreamCqrs {
         for event in events {
             match &event.payload {
                 ProductEvent::ProductAdded {
+                    platform_id,
+                    category_id,
                     vendor_id,
                     group_id,
                     ..
                 } => {
+                    if let Some(category_id) = category_id.clone() {
+                        self.categorize_product(
+                            platform_id.clone(),
+                            category_id.clone(),
+                            aggregate_id.to_string(),
+                        )
+                        .await;
+                    }
                     if let Some(group_id) = group_id.clone() {
-                        self.group_product_on_vendor(
+                        self.group_product(
                             vendor_id.clone(),
                             group_id.clone(),
                             aggregate_id.to_string(),
@@ -77,11 +82,22 @@ impl Query<Product> for DownstreamCqrs {
                         .await;
                     }
                 }
+                ProductEvent::ProductCategorized {
+                    platform_id,
+                    category_id,
+                } => {
+                    self.categorize_product(
+                        platform_id.clone(),
+                        category_id.clone(),
+                        aggregate_id.to_string(),
+                    )
+                    .await;
+                }
                 ProductEvent::ProductGrouped {
                     vendor_id,
                     group_id,
                 } => {
-                    self.group_product_on_vendor(
+                    self.group_product(
                         vendor_id.clone(),
                         group_id.clone(),
                         aggregate_id.to_string(),

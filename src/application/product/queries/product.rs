@@ -62,6 +62,7 @@ impl View<Product> for ProductView {
         match &event.payload {
             ProductEvent::ProductAdded {
                 id,
+                platform_id,
                 vendor_id,
                 category_id: _,
                 group_id,

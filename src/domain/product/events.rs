@@ -8,6 +8,7 @@ use serde_json::Value;
 pub enum ProductEvent {
     ProductAdded {
         id: String,
+        platform_id: String,
         vendor_id: String,
         category_id: Option<String>,
         group_id: Option<String>,

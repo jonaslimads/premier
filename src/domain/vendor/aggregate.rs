@@ -3,7 +3,8 @@ use cqrs_es::Aggregate;
 
 use crate::application::vendor::commands::VendorCommand;
 use crate::application::vendor::services::VendorServices;
-use crate::domain::vendor::{Group, Vendor, VendorError, VendorEvent};
+use crate::domain::vendor::entities::{Group, Platform, Vendor};
+use crate::domain::vendor::{VendorError, VendorEvent};
 
 #[async_trait]
 impl Aggregate for Vendor {
@@ -27,6 +28,7 @@ impl Aggregate for Vendor {
         Ok(match command {
             VendorCommand::AddVendor(command) => vec![VendorEvent::VendorAdded {
                 id: command.id,
+                platform_id: command.platform_id,
                 name: command.name,
                 attributes: command.attributes,
             }],
@@ -50,10 +52,12 @@ impl Aggregate for Vendor {
         match event {
             VendorEvent::VendorAdded {
                 id,
+                platform_id,
                 name,
                 attributes,
             } => {
                 self.id = id;
+                self.platform = Platform::new(platform_id);
                 self.name = name;
                 self.attributes = attributes;
                 self.is_archived = false;
@@ -94,11 +98,13 @@ mod aggregate_tests {
     fn test_a() {
         let expected = VendorEvent::VendorAdded {
             id: "".to_string(),
+            platform_id: "".to_string(),
             name: "".to_string(),
             attributes: json!({}),
         };
         let command = VendorCommand::AddVendor(AddVendorCommand {
             id: "".to_string(),
+            platform_id: "".to_string(),
             name: "".to_string(),
             attributes: json!({}),
         });

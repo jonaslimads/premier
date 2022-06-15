@@ -30,8 +30,9 @@ impl Aggregate for Product {
         Ok(match command {
             ProductCommand::AddProduct(command) => vec![ProductEvent::ProductAdded {
                 id: command.id,
-                vendor_id: command.vendor_id,
+                platform_id: command.platform_id,
                 category_id: command.category_id,
+                vendor_id: command.vendor_id,
                 group_id: command.group_id,
                 name: command.name,
                 description: command.description,
@@ -162,6 +163,7 @@ impl Aggregate for Product {
         match event {
             ProductEvent::ProductAdded {
                 id,
+                platform_id: _,
                 vendor_id,
                 category_id,
                 group_id,
@@ -277,6 +279,7 @@ mod aggregate_tests {
     const PRODUCT_ID: &str = "product_id";
     const VARIANT_ID: &str = "variant_id";
     const WAREHOUSE_ID: &str = "warehouse_id";
+    const PLATFORM_ID: &str = "platform_id";
     const VENDOR_ID: &str = "vendor_id";
     const ORDER_ID: &str = "order_id";
     const CURRENCY: &str = "USD";
@@ -424,6 +427,7 @@ mod aggregate_tests {
     fn product_added() -> ProductEvent {
         ProductEvent::ProductAdded {
             id: PRODUCT_ID.to_string(),
+            platform_id: PLATFORM_ID.to_string(),
             vendor_id: VENDOR_ID.to_string(),
             category_id: None,
             group_id: None,

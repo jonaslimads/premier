@@ -25,6 +25,7 @@ pub enum ProductCommand {
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
 pub struct AddProductCommand {
     pub id: String,
+    pub platform_id: String,
     pub vendor_id: String,
     pub category_id: Option<String>,
     pub group_id: Option<String>,

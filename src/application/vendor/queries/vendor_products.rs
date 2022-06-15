@@ -48,6 +48,7 @@ impl View<Vendor> for VendorProductsView {
         match &event.payload {
             VendorEvent::VendorAdded {
                 id,
+                platform_id,
                 name,
                 attributes,
             } => {

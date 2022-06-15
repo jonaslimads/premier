@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::domain::vendor::entities::Group;
+use crate::domain::vendor::entities::{Group, Platform};
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Vendor {
     pub id: String,
+    pub platform: Platform,
     pub name: String,
     pub slug: String,
     pub attributes: Value,

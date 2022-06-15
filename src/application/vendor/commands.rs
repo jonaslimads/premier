@@ -16,6 +16,7 @@ pub enum VendorCommand {
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
 pub struct AddVendorCommand {
     pub id: String,
+    pub platform_id: String,
     pub name: String,
     pub attributes: Value,
 }

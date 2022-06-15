@@ -7,6 +7,7 @@ use std::fmt::Debug;
 pub enum VendorEvent {
     VendorAdded {
         id: String,
+        platform_id: String,
         name: String,
         attributes: Value,
     },
