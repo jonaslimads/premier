@@ -33,7 +33,13 @@ impl Aggregate for Platform {
                 name: command.name,
                 attributes: command.attributes,
             }],
-
+            PlatformCommand::AddCategory(command) => vec![PlatformEvent::CategoryAdded {
+                category_id: command.category_id,
+                name: command.name,
+                slug: command.slug,
+                order: command.order,
+                parent_category_id: command.parent_category_id,
+            }],
             PlatformCommand::CategorizeProduct(command) => {
                 vec![PlatformEvent::ProductCategorized {
                     category_id: command.category_id,
@@ -62,11 +68,19 @@ impl Aggregate for Platform {
                 self.name = name;
                 self.attributes = attributes;
             }
+            PlatformEvent::CategoryAdded {
+                category_id,
+                name,
+                slug,
+                order,
+                parent_category_id,
+            } => {
+                // self.add_group(Group::new(group_id, name, slug, order), parent_group_id)
+            }
             PlatformEvent::ProductCategorized {
                 category_id,
                 product_id,
             } => {
-                todo!()
                 // self.group_product(group_id, product_id)
             }
             PlatformEvent::PlatformNameUpdated { name } => self.name = name,

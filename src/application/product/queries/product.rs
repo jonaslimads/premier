@@ -12,6 +12,7 @@ use crate::domain::product::Product;
 pub struct ProductView {
     pub id: String,
     pub vendor: ProductViewVendor,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub group: Option<ProductViewGroup>,
     pub name: String,
     pub description: String,

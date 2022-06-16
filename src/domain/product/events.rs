@@ -4,13 +4,19 @@ use cqrs_es::DomainEvent;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::domain::{default_platform_id, skip_default_platform_id};
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum ProductEvent {
     ProductAdded {
         id: String,
+        #[serde(default = "default_platform_id")]
+        #[serde(skip_serializing_if = "skip_default_platform_id")]
         platform_id: String,
         vendor_id: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
         category_id: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         group_id: Option<String>,
         name: String,
         description: String,
@@ -22,6 +28,8 @@ pub enum ProductEvent {
     ProductArchived {},
     ProductUnarchived {},
     ProductCategorized {
+        #[serde(default = "default_platform_id")]
+        #[serde(skip_serializing_if = "skip_default_platform_id")]
         platform_id: String,
         category_id: String,
     },

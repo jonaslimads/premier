@@ -8,7 +8,8 @@ use crate::application::order::commands::{
     OrderCommand, UnarchiveOrderCommand,
 };
 use crate::application::platform::commands::{
-    AddPlatformCommand, PlatformCommand, UpdatePlatformAttributesCommand, UpdatePlatformNameCommand,
+    AddCategoryCommand, AddPlatformCommand, PlatformCommand, UpdatePlatformAttributesCommand,
+    UpdatePlatformNameCommand,
 };
 use crate::application::product::commands::{
     AddProductCommand, AddProductVariantCommand, AddProductVariantStockCommand,
@@ -127,6 +128,7 @@ mutation_root!(
     order => AddOrderProduct,
     order => AddOrderProductVariant,
     platform => AddPlatform,
+    platform => AddCategory,
     platform => UpdatePlatformName,
     platform => UpdatePlatformAttributes,
     product => AddProduct,

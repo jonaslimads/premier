@@ -2,6 +2,8 @@ use async_graphql::InputObject;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::domain::default_platform_id;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ProductCommand {
     AddProduct(AddProductCommand),
@@ -25,6 +27,7 @@ pub enum ProductCommand {
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
 pub struct AddProductCommand {
     pub id: String,
+    #[graphql(default_with = "default_platform_id()")]
     pub platform_id: String,
     pub vendor_id: String,
     pub category_id: Option<String>,
@@ -50,6 +53,7 @@ pub struct UnarchiveProductCommand {
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
 pub struct CategorizeProductCommand {
     pub id: String,
+    #[graphql(default_with = "default_platform_id()")]
     pub platform_id: String,
     pub category_id: String,
 }
