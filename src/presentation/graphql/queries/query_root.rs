@@ -6,6 +6,7 @@ use crate::application::product::queries::product::{ProductQuery, ProductView, P
 use crate::application::vendor::queries::vendor_products::{
     VendorProductsQuery, VendorProductsView, VendorProductsViewGroup, VendorProductsViewProduct,
 };
+use crate::commons::{HasNestedGroups, HasNestedGroupsWithItems};
 use crate::presentation::graphql::queries::utils::{
     empty_connection, get_from_filter, opt_from_filter, query_vec,
     query_vec_with_additional_fields, sort, Connection, Filter, Ordering,
@@ -75,14 +76,13 @@ impl QueryRoot {
 
         let (mut products, group_id) = if let Some(group_id) = group_id {
             let mut groups = vendor.groups;
-            let group = match VendorProductsViewGroup::get_group_mut(&mut groups, group_id.clone())
-            {
+            let group = match VendorProductsView::get_group_mut(&mut groups, group_id.clone()) {
                 Some(group) => group,
                 None => return Ok(empty_connection()),
             };
             (Some(group.products.clone()), group_id.clone())
         } else {
-            (Some(vendor.get_all_products()), "".to_string())
+            (Some(vendor.get_all_items()), "".to_string())
         };
 
         sort!(products, sort, id, name);
@@ -128,7 +128,7 @@ impl QueryRoot {
             Some(groups) => groups,
             None => return Ok(None),
         };
-        match VendorProductsViewGroup::get_group_mut(&mut groups, id) {
+        match VendorProductsView::get_group_mut(&mut groups, id) {
             Some(group) => Ok(Some(group.clone())),
             None => return Ok(None),
         }

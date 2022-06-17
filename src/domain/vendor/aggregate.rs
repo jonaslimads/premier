@@ -3,6 +3,7 @@ use cqrs_es::Aggregate;
 
 use crate::application::vendor::commands::VendorCommand;
 use crate::application::vendor::services::VendorServices;
+use crate::commons::{HasNestedGroups, HasNestedGroupsWithItems};
 use crate::domain::vendor::entities::{Group, Platform, Vendor};
 use crate::domain::vendor::{VendorError, VendorEvent};
 
@@ -74,7 +75,7 @@ impl Aggregate for Vendor {
             VendorEvent::ProductGrouped {
                 group_id,
                 product_id,
-            } => self.group_product(group_id, product_id),
+            } => self.group(group_id, product_id),
         }
     }
 }

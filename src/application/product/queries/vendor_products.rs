@@ -7,6 +7,7 @@ use crate::application::vendor::queries::vendor_products::{
     VendorProductsView, VendorProductsViewProduct,
 };
 use crate::application::BaseQuery;
+use crate::commons::HasNestedGroupsWithItems;
 use crate::domain::product::events::ProductEvent;
 use crate::domain::product::Product;
 
@@ -25,7 +26,7 @@ impl View<Product> for VendorProductsView {
                 currency,
                 attachments,
                 attributes,
-            } => self.ungroupd_products.push(VendorProductsViewProduct {
+            } => self.ungrouped_products.push(VendorProductsViewProduct {
                 id: id.clone(),
                 name: name.clone(),
                 slug: slug.clone(),
@@ -36,24 +37,24 @@ impl View<Product> for VendorProductsView {
                 is_archived: false,
             }),
             ProductEvent::ProductArchived {} => {
-                if let Some(product) = self.get_product_mut(event.aggregate_id.clone()) {
+                self.mutate_item(event.aggregate_id.clone(), &mut |product| {
                     product.is_archived = true;
-                }
+                })
             }
             ProductEvent::ProductUnarchived {} => {
-                if let Some(product) = self.get_product_mut(event.aggregate_id.clone()) {
+                self.mutate_item(event.aggregate_id.clone(), &mut |product| {
                     product.is_archived = false;
-                }
+                })
             }
             ProductEvent::ProductNameUpdated { name } => {
-                if let Some(product) = self.get_product_mut(event.aggregate_id.clone()) {
+                self.mutate_item(event.aggregate_id.clone(), &mut |product| {
                     product.name = name.clone();
-                }
+                })
             }
             ProductEvent::ProductSlugUpdated { slug } => {
-                if let Some(product) = self.get_product_mut(event.aggregate_id.clone()) {
+                self.mutate_item(event.aggregate_id.clone(), &mut |product| {
                     product.slug = slug.clone();
-                }
+                })
             }
             _ => {}
         }

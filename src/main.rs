@@ -2,6 +2,7 @@
 #![deny(clippy::all)]
 
 mod application;
+mod commons;
 mod domain;
 mod infrastructure;
 mod presentation;

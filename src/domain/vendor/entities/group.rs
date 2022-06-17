@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::commons::{HasId, HasItems, HasNestedGroups};
 use crate::domain::vendor::entities::Product;
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -26,36 +27,54 @@ impl Group {
         }
     }
 
-    pub fn get_group_mut<'a>(groups: &'a mut Vec<Self>, group_id: String) -> Option<&'a mut Self> {
-        for group in groups {
-            if group.id == group_id.clone() {
-                return Some(group);
-            }
-            if let Some(child_group) = Self::get_group_mut(&mut group.children, group_id.clone()) {
-                return Some(child_group);
-            }
-        }
-        None
-    }
+    // pub fn get_group_mut<'a>(groups: &'a mut Vec<Self>, group_id: String) -> Option<&'a mut Self> {
+    //     for group in groups {
+    //         if group.id == group_id.clone() {
+    //             return Some(group);
+    //         }
+    //         if let Some(child_group) = Self::get_group_mut(&mut group.children, group_id.clone()) {
+    //             return Some(child_group);
+    //         }
+    //     }
+    //     None
+    // }
 
-    pub fn add_group(groups: &mut Vec<Self>, group: Self) {
-        groups.insert(Self::get_insertion_position(&groups, &group), group)
-    }
+    // pub fn add_group(groups: &mut Vec<Self>, group: Self) {
+    //     groups.insert(Self::get_insertion_position(&groups, &group), group)
+    // }
 
-    fn get_insertion_position(groups: &Vec<Self>, new_group: &Self) -> usize {
-        let mut i = 0_usize;
-        for group in groups {
-            if (new_group.order < group.order)
-                || (new_group.order == group.order && new_group.name < group.name)
-            {
-                return i;
-            }
-            i += 1;
-        }
-        i
-    }
+    // fn get_insertion_position(groups: &Vec<Self>, new_group: &Self) -> usize {
+    //     let mut i = 0_usize;
+    //     for group in groups {
+    //         if (new_group.order < group.order)
+    //             || (new_group.order == group.order && new_group.name < group.name)
+    //         {
+    //             return i;
+    //         }
+    //         i += 1;
+    //     }
+    //     i
+    // }
 
-    pub fn add_product(&mut self, product_id: String) {
-        self.products.push(Product { id: product_id })
+    // pub fn add_product(&mut self, product_id: String) {
+    //     self.add_item(Product { id: product_id })
+    // }
+}
+
+impl HasId for Group {
+    fn id(&self) -> String {
+        self.id.clone()
+    }
+}
+
+impl HasItems<Product> for Group {
+    fn get_items_mut(&mut self) -> &mut Vec<Product> {
+        &mut self.products
+    }
+}
+
+impl HasNestedGroups<Group> for Group {
+    fn get_groups_mut(&mut self) -> &mut Vec<Group> {
+        &mut self.children
     }
 }

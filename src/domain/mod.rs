@@ -12,11 +12,11 @@ pub fn skip_default_platform_id(platform_id: &String) -> bool {
 }
 
 macro_rules! event_enum {
-    (version $version:expr,
+    (version $version:literal,
     enum $name:ident {
         $($variant:ident { $($tt:tt)* }),*,
     }) => {
-        #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+        #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
         pub enum $name {
             $($variant { $($tt)* }),*
         }
