@@ -130,6 +130,22 @@ impl HasNestedGroups<VendorProductsViewGroup> for VendorProductsViewGroup {
     fn get_groups_mut(&mut self) -> &mut Vec<VendorProductsViewGroup> {
         &mut self.children
     }
+
+    fn find_insertion_position(
+        groups: &Vec<VendorProductsViewGroup>,
+        new_group: &VendorProductsViewGroup,
+    ) -> Option<usize> {
+        let mut position = 0_usize;
+        for group in groups {
+            if (new_group.order < group.order)
+                || (new_group.order == group.order && new_group.name < group.name)
+            {
+                return Some(position);
+            }
+            position += 1;
+        }
+        Some(position)
+    }
 }
 
 impl<'a> HasNestedGroupsWithItems<'a, VendorProductsViewGroup, VendorProductsViewProduct>

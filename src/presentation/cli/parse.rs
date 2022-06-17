@@ -79,7 +79,7 @@ pub async fn parse() -> Result<Option<String>> {
     let (order_startup, platform_startup, product_startup, vendor_startup) =
         startup::start_cqrs_instances(pool.clone()).await;
     let (order_cqrs,) = order_startup;
-    let (platform_cqrs,) = platform_startup;
+    let (platform_cqrs, platform_query) = platform_startup;
     let (product_cqrs, product_query) = product_startup;
     let (vendor_cqrs, vendor_product_query) = vendor_startup;
 
@@ -89,7 +89,7 @@ pub async fn parse() -> Result<Option<String>> {
                 config.get_port(),
                 presentation_service,
                 (order_cqrs.clone(),),
-                (platform_cqrs.clone(),),
+                (platform_cqrs.clone(), platform_query.clone()),
                 (product_cqrs.clone(), product_query.clone()),
                 (vendor_cqrs.clone(), vendor_product_query.clone()),
             )

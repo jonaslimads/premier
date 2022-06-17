@@ -2,6 +2,9 @@ use std::sync::Arc;
 
 use async_graphql::{Context, Object, Result, SimpleObject};
 
+use crate::application::platform::queries::platform::{
+    PlatformQuery, PlatformView, PlatformViewCategory,
+};
 use crate::application::product::queries::product::{ProductQuery, ProductView, ProductViewReview};
 use crate::application::vendor::queries::vendor_products::{
     VendorProductsQuery, VendorProductsView, VendorProductsViewGroup, VendorProductsViewProduct,
@@ -18,6 +21,28 @@ pub struct QueryRoot;
 impl QueryRoot {
     async fn is_up(&self) -> Result<bool> {
         Ok(true)
+    }
+
+    async fn platform(&self, context: &Context<'_>) -> Result<Option<PlatformView>> {
+        let query = context.data_unchecked::<Arc<PlatformQuery>>().clone();
+        Ok(query.load("0").await.clone())
+    }
+
+    async fn categories(
+        &self,
+        context: &Context<'_>,
+        _filter: Filter,
+        sort: Ordering,
+        after: Option<String>,
+        before: Option<String>,
+        first: Option<i32>,
+        last: Option<i32>,
+    ) -> Result<Connection<PlatformViewCategory>> {
+        let query = context.data_unchecked::<Arc<PlatformQuery>>().clone();
+        let platform = query.load("0").await.clone();
+        let mut categories = platform.map(|v| v.categories);
+        sort!(categories, sort, name);
+        query_vec(categories, after, before, first, last).await
     }
 
     async fn vendor(

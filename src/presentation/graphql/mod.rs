@@ -21,7 +21,7 @@ pub async fn start_graphql_server(
     port: u16,
     presentation_service: Arc<PresentationService>,
     (order_cqrs,): OrderStartup,
-    (platform_cqrs,): PlatformStartup,
+    (platform_cqrs, platform_query): PlatformStartup,
     (product_cqrs, product_query): ProductStartup,
     (vendor_cqrs, vendor_product_query): VendorStartup,
 ) {
@@ -29,6 +29,7 @@ pub async fn start_graphql_server(
         .data(presentation_service)
         .data(order_cqrs)
         .data(platform_cqrs)
+        .data(platform_query)
         .data(product_cqrs)
         .data(product_query)
         .data(vendor_cqrs)

@@ -38,14 +38,14 @@ main() {
         echo "Premier migration already applied"
     fi
 
-    migrate_keycloak
+    # migrate_keycloak
 
-    if [[ $# -eq 0 ]] ; then
-        docker-compose up -d keycloak
-        docker-compose up premier
-    else
-        docker-compose up keycloak
-    fi
+    # if [[ $# -eq 0 ]] ; then
+    #     docker-compose up -d keycloak
+    #     docker-compose up premier
+    # else
+    #     docker-compose up keycloak
+    # fi
 }
 
 migrate_keycloak() {

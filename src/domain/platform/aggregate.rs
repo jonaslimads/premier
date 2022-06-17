@@ -5,7 +5,8 @@ use cqrs_es::Aggregate;
 
 use crate::application::platform::commands::PlatformCommand;
 use crate::application::platform::services::PlatformServices;
-use crate::domain::platform::entities::Platform;
+use crate::commons::HasNestedGroups;
+use crate::domain::platform::entities::{Category, Platform};
 use crate::domain::platform::{PlatformError, PlatformEvent};
 
 #[async_trait]
@@ -74,12 +75,13 @@ impl Aggregate for Platform {
                 slug,
                 order,
                 parent_category_id,
-            } => {
-                // self.add_group(Group::new(group_id, name, slug, order), parent_group_id)
-            }
+            } => self.add_group(
+                Category::new(category_id, name, slug, order),
+                parent_category_id,
+            ),
             PlatformEvent::ProductCategorized {
-                category_id,
-                product_id,
+                category_id: _,
+                product_id: _,
             } => {
                 // self.group_product(group_id, product_id)
             }

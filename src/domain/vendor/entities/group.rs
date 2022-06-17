@@ -26,39 +26,6 @@ impl Group {
             products: Vec::new(),
         }
     }
-
-    // pub fn get_group_mut<'a>(groups: &'a mut Vec<Self>, group_id: String) -> Option<&'a mut Self> {
-    //     for group in groups {
-    //         if group.id == group_id.clone() {
-    //             return Some(group);
-    //         }
-    //         if let Some(child_group) = Self::get_group_mut(&mut group.children, group_id.clone()) {
-    //             return Some(child_group);
-    //         }
-    //     }
-    //     None
-    // }
-
-    // pub fn add_group(groups: &mut Vec<Self>, group: Self) {
-    //     groups.insert(Self::get_insertion_position(&groups, &group), group)
-    // }
-
-    // fn get_insertion_position(groups: &Vec<Self>, new_group: &Self) -> usize {
-    //     let mut i = 0_usize;
-    //     for group in groups {
-    //         if (new_group.order < group.order)
-    //             || (new_group.order == group.order && new_group.name < group.name)
-    //         {
-    //             return i;
-    //         }
-    //         i += 1;
-    //     }
-    //     i
-    // }
-
-    // pub fn add_product(&mut self, product_id: String) {
-    //     self.add_item(Product { id: product_id })
-    // }
 }
 
 impl HasId for Group {

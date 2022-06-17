@@ -52,10 +52,10 @@ where
         let groups = self.get_groups_mut();
         if let Some(parent_id) = parent_group_id {
             if let Some(parent_group) = Self::get_group_mut(groups, parent_id) {
-                parent_group.get_groups_mut().push(new_group)
+                Self::insert_to_group(parent_group.get_groups_mut(), new_group)
             }
         } else {
-            groups.push(new_group)
+            Self::insert_to_group(groups, new_group)
         }
     }
 
@@ -70,6 +70,17 @@ where
                 return Some(nested_group);
             }
         }
+        None
+    }
+
+    fn insert_to_group(groups: &mut Vec<G>, new_group: G) {
+        match Self::find_insertion_position(groups, &new_group) {
+            Some(position) => groups.insert(position, new_group),
+            None => groups.push(new_group),
+        }
+    }
+
+    fn find_insertion_position(_groups: &Vec<G>, _new_group: &G) -> Option<usize> {
         None
     }
 }
