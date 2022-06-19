@@ -1,13 +1,12 @@
 use async_graphql::SimpleObject;
 use cqrs_es::persist::GenericQuery;
 use cqrs_es::{EventEnvelope, View};
-use mysql_es::MysqlViewRepository;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::domain::vendor::events::VendorEvent;
 use crate::domain::vendor::Vendor;
-
+use crate::infrastructure::ViewRepository;
 use crate::commons::{HasId, HasItems, HasNestedGroups, HasNestedGroupsWithItems};
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
@@ -80,7 +79,7 @@ impl View<Vendor> for VendorProductsView {
 }
 
 pub type VendorProductsQuery =
-    GenericQuery<MysqlViewRepository<VendorProductsView, Vendor>, VendorProductsView, Vendor>;
+    GenericQuery<ViewRepository<VendorProductsView, Vendor>, VendorProductsView, Vendor>;
 
 impl VendorProductsViewGroup {
     pub fn new(id: String, name: String, slug: String, order: u16) -> Self {

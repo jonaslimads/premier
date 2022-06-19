@@ -52,7 +52,7 @@ impl PresentationService {
         Ok(session_intent.parse(self.oidc_provider.clone())?)
     }
 
-    // TODO make this regardless of database
+    #[cfg(not(feature = "sqlite"))]
     pub async fn get_random_event_aggregate_id(&self, aggregate_type: &str) -> Result<String> {
         let sql = format!(
             "SELECT GET_RANDOM_{}_EVENT_AGGREGATE_ID(100000000000, 1000000000000-1)",
@@ -60,6 +60,11 @@ impl PresentationService {
         );
         let row: (u64,) = sqlx::query_as(sql.as_str()).fetch_one(&self.pool).await?;
         Ok(row.0.to_string())
+    }
+
+    #[cfg(feature = "sqlite")]
+    pub async fn get_random_event_aggregate_id(&self, _aggregate_type: &str) -> Result<String> {
+        return Ok("".to_string())
     }
 
     // TODO make this regardless of database

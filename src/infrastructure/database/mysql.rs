@@ -1,18 +1,21 @@
 use cqrs_es::persist::PersistedEventStore;
 use cqrs_es::{Aggregate, CqrsFramework, Query};
-pub use mysql_es::MysqlViewRepository;
+use mysql_es::MysqlViewRepository;
 use mysql_es::{MysqlEventRepository, SqlQueryFactory};
-pub use sqlx::mysql::MySqlPoolOptions;
-pub use sqlx::MySqlPool;
+use sqlx::mysql::MySqlPoolOptions;
 
-pub type MysqlCqrs<A> = CqrsFramework<A, PersistedEventStore<MysqlEventRepository, A>>;
+pub type ViewRepository<V, A> = MysqlViewRepository<V, A>;
+
+pub type ConnectionPool = sqlx::MySqlPool;
+
+pub type Cqrs<A> = CqrsFramework<A, PersistedEventStore<MysqlEventRepository, A>>;
 
 pub async fn cqrs<A>(
-    pool: MySqlPool,
+    pool: ConnectionPool,
     events_table: &str,
     queries: Vec<Box<dyn Query<A>>>,
     services: A::Services,
-) -> MysqlCqrs<A>
+) -> Cqrs<A>
 where
     A: Aggregate,
 {
@@ -50,8 +53,8 @@ INSERT INTO {} (aggregate_id, last_sequence, current_snapshot, payload)
   VALUES (?, ?, ?, ?)", snapshots_table),
         format!("
 UPDATE {}
-  SET last_sequence= ? , payload= ?, current_snapshot= ?
-  WHERE '' = ? AND aggregate_id= ? AND current_snapshot= ?", snapshots_table),
+  SET last_sequence = ? , payload = ?, current_snapshot = ?
+  WHERE '' = ? AND aggregate_id = ? AND current_snapshot = ?", snapshots_table),
         format!("
 SELECT '' AS aggregate_type, CAST(aggregate_id AS CHAR) AS aggregate_id, last_sequence, current_snapshot, payload
   FROM {}
@@ -61,7 +64,7 @@ SELECT '' AS aggregate_type, CAST(aggregate_id AS CHAR) AS aggregate_id, last_se
     CqrsFramework::new(store, queries, services)
 }
 
-pub async fn start_connection_pool(database_uri: &str, max_connections: u32) -> sqlx::MySqlPool {
+pub async fn start_connection_pool(database_uri: &str, max_connections: u32) -> ConnectionPool {
     MySqlPoolOptions::new()
         .max_connections(max_connections)
         .connect(database_uri)

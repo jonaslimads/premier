@@ -1,13 +1,13 @@
 use async_graphql::SimpleObject;
 use cqrs_es::persist::GenericQuery;
 use cqrs_es::{EventEnvelope, View};
-use mysql_es::MysqlViewRepository;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::commons::{HasId, HasNestedGroups};
 use crate::domain::platform::events::PlatformEvent;
 use crate::domain::platform::Platform;
+use crate::infrastructure::ViewRepository;
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
 pub struct PlatformView {
@@ -77,7 +77,7 @@ impl View<Platform> for PlatformView {
 }
 
 pub type PlatformQuery =
-    GenericQuery<MysqlViewRepository<PlatformView, Platform>, PlatformView, Platform>;
+    GenericQuery<ViewRepository<PlatformView, Platform>, PlatformView, Platform>;
 
 impl PlatformViewCategory {
     pub fn new(id: String, name: String, slug: String, order: u16) -> Self {

@@ -65,8 +65,8 @@ pub async fn parse() -> Result<Option<String>> {
     let config = cli.parse_config();
     // log::trace!("{:?}", config);
 
-    let pool = config
-        .get_database_or_error()?
+    let database = config.get_database_or_error()?;
+    let pool = database
         .get_mysql_or_error()?
         .into_connection_pool()
         .await;

@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use cqrs_es::{EventEnvelope, Query, View};
-use mysql_es::MysqlViewRepository;
 
 use crate::application::product::services::ProductServices;
 use crate::application::vendor::queries::vendor_products::{
@@ -10,6 +9,7 @@ use crate::application::BaseQuery;
 use crate::commons::HasNestedGroupsWithItems;
 use crate::domain::product::events::ProductEvent;
 use crate::domain::product::Product;
+use crate::infrastructure::ViewRepository;
 
 impl View<Product> for VendorProductsView {
     fn update(&mut self, event: &EventEnvelope<Product>) {
@@ -62,7 +62,7 @@ impl View<Product> for VendorProductsView {
 }
 
 pub type VendorProductsQueryFromProduct = BaseQuery<
-    MysqlViewRepository<VendorProductsView, Product>,
+    ViewRepository<VendorProductsView, Product>,
     VendorProductsView,
     Product,
     ProductServices,
