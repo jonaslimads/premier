@@ -1,12 +1,12 @@
 [submodule "cqrs"]
-	path = cqrs
+	path = crates/cqrs
 	url = https://github.com/jonaslimads/cqrs/
 [submodule "mysql-es"]
-	path = mysql-es
+	path = crates/mysql-es
 	url = https://github.com/jonaslimads/mysql-es/
 [submodule "admin"]
 	path = admin
 	url = git@github.com:jonaslimads/premier-admin.git
 [submodule "sqlite-es"]
-	path = sqlite-es
+	path = crates/sqlite-es
 	url = git@github.com:jonaslimads/sqlite-es.git

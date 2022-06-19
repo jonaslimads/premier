@@ -13,7 +13,7 @@ async-trait = "0.1.53"
 chrono = {version = "0.4.19", features = ["serde"]}
 clap = {version = "3.1.15", features = ["derive"]}
 # cqrs-es = "0.4.0"
-cqrs-es = {path = "./cqrs"}
+cqrs-es = {path = "./crates/cqrs"}
 dotenv = "0.15.0"
 env_logger = "0.9.0"
 futures = "0.3.21"
@@ -23,8 +23,8 @@ jsonwebtoken = "8.1.0"
 keycloak = "18.0.0"
 log = "0.4.16"
 # mysql-es = "0.4.0"
-mysql-es = {path = "./mysql-es", optional = true}
-sqlite-es = {path = "./sqlite-es", optional = true}
+mysql-es = {path = "./crates/mysql-es", optional = true}
+sqlite-es = {path = "./crates/sqlite-es", optional = true}
 paste = "1.0.7"
 reqwest = "0.11.10"
 serde = {version = "1.0.136", features = ["derive"]}
@@ -37,7 +37,7 @@ uuid = {version = "0.8.2", features = ["serde", "v4"]}
 warp = "0.3.2"
 
 [workspace]
-members = ["cqrs", "mysql-es", "sqlite-es"]
+members = ["crates/cqrs", "crates/mysql-es", "crates/sqlite-es"]
 
 [features]
 default = ["sqlite"]
