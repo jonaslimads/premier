@@ -1,5 +1,7 @@
-use crate::infrastructure::{start_connection_pool, ConnectionPool};
 use serde::Deserialize;
+
+use crate::infrastructure::ConnectionPool;
+use crate::presentation::{PresentationError, Result};
 
 const DEFAULT_MYSQL_MAX_CONNECTIONS: u32 = 5;
 
@@ -10,10 +12,24 @@ pub struct MySqlConfig {
 }
 
 impl MySqlConfig {
-    pub async fn into_connection_pool(&self) -> ConnectionPool {
-        start_connection_pool(self.url.as_str(), self.get_max_connections()).await
+    pub async fn into_connection_pool(&self) -> Result<ConnectionPool> {
+        #[cfg(feature = "mysql")]
+        {
+            Ok(crate::infrastructure::start_connection_pool(
+                self.url.clone(),
+                self.get_max_connections(),
+            )
+            .await)
+        }
+        #[cfg(not(feature = "mysql"))]
+        {
+            Err(PresentationError::Release(
+                "does not support MySQL. Try another release.".to_string(),
+            ))
+        }
     }
 
+    #[allow(dead_code)]
     pub fn get_max_connections(&self) -> u32 {
         self.max_connections
             .unwrap_or(DEFAULT_MYSQL_MAX_CONNECTIONS)

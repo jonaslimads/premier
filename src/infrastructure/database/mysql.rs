@@ -64,12 +64,21 @@ SELECT '' AS aggregate_type, CAST(aggregate_id AS CHAR) AS aggregate_id, last_se
     CqrsFramework::new(store, queries, services)
 }
 
-pub async fn start_connection_pool(database_uri: &str, max_connections: u32) -> ConnectionPool {
+pub async fn start_connection_pool(database_uri: String, max_connections: u32) -> ConnectionPool {
     MySqlPoolOptions::new()
         .max_connections(max_connections)
-        .connect(database_uri)
+        .connect(database_uri.as_str())
         .await
         .expect("unable to connect to database")
+}
+
+pub async fn get_random_event_aggregate_id(pool: &ConnectionPool, aggregate_type: &str) -> crate::presentation::Result<String> {
+  let sql = format!(
+      "SELECT GET_RANDOM_{}_EVENT_AGGREGATE_ID(100000000000, 1000000000000-1)",
+      aggregate_type
+  );
+  let row: (u64,) = sqlx::query_as(sql.as_str()).fetch_one(&pool).await?;
+  Ok(row.0.to_string())
 }
 
 // test upcast

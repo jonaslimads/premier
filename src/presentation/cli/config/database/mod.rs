@@ -3,6 +3,7 @@ use serde::Deserialize;
 pub mod mysql;
 pub mod sqlite;
 
+use crate::infrastructure::ConnectionPool;
 use crate::presentation::{PresentationError, Result};
 use mysql::MySqlConfig;
 use sqlite::SqliteConfig;
@@ -14,17 +15,15 @@ pub struct DatabaseConfig {
 }
 
 impl DatabaseConfig {
-    pub fn get_mysql_or_error(&self) -> Result<&MySqlConfig> {
-        match &self.mysql {
-            Some(mysql) => Ok(mysql),
-            None => Err(PresentationError::Config("No MySQL config set".to_string())),
-        }
-    }
-
-    pub fn get_sqlite_or_error(&self) -> Result<&SqliteConfig> {
-        match &self.sqlite {
-            Some(sqlite) => Ok(sqlite),
-            None => Err(PresentationError::Config("No SQLite config set".to_string())),
+    pub async fn into_connection_pool(&self) -> Result<ConnectionPool> {
+        if let Some(mysql) = &self.mysql {
+            mysql.into_connection_pool().await
+        } else if let Some(sqlite) = &self.sqlite {
+            sqlite.into_connection_pool().await
+        } else {
+            Err(PresentationError::Config(
+                "No database config set".to_string(),
+            ))
         }
     }
 }

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::infrastructure::auth::{OidcProvider, Session, SessionIntent};
-use crate::infrastructure::ConnectionPool;
+use crate::infrastructure::{get_random_event_aggregate_id, ConnectionPool};
 use crate::presentation::{PresentationError, Result};
 
 pub struct PresentationService {
@@ -29,7 +29,7 @@ impl PresentationService {
         let is_new =
             command_type.to_string().to_lowercase() == format!("{}{}", "add", aggregate_type);
         if is_new && aggregate_id == "" {
-            Ok(self.get_random_event_aggregate_id(aggregate_type).await?)
+            Ok(get_random_event_aggregate_id(&self.pool, aggregate_type).await?)
         } else if is_new && aggregate_id != "" {
             Ok(aggregate_id)
         } else if !is_new && aggregate_id == "" {
@@ -50,21 +50,6 @@ impl PresentationService {
 
     pub async fn parse_session(&self, session_intent: SessionIntent) -> Result<Session> {
         Ok(session_intent.parse(self.oidc_provider.clone())?)
-    }
-
-    #[cfg(not(feature = "sqlite"))]
-    pub async fn get_random_event_aggregate_id(&self, aggregate_type: &str) -> Result<String> {
-        let sql = format!(
-            "SELECT GET_RANDOM_{}_EVENT_AGGREGATE_ID(100000000000, 1000000000000-1)",
-            aggregate_type
-        );
-        let row: (u64,) = sqlx::query_as(sql.as_str()).fetch_one(&self.pool).await?;
-        Ok(row.0.to_string())
-    }
-
-    #[cfg(feature = "sqlite")]
-    pub async fn get_random_event_aggregate_id(&self, _aggregate_type: &str) -> Result<String> {
-        return Ok("".to_string())
     }
 
     // TODO make this regardless of database

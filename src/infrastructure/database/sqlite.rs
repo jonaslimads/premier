@@ -1,7 +1,10 @@
+use rand::Rng;
+use std::fs::File;
+
 use cqrs_es::persist::PersistedEventStore;
 use cqrs_es::{Aggregate, CqrsFramework, Query};
 use sqlite_es::SqliteViewRepository;
-use sqlite_es::{SqliteEventRepository, SqlQueryFactory};
+use sqlite_es::{SqlQueryFactory, SqliteEventRepository};
 use sqlx::sqlite::SqlitePoolOptions;
 
 pub type ViewRepository<V, A> = SqliteViewRepository<V, A>;
@@ -30,44 +33,87 @@ where
         metadata
     ";
     let query_factory = SqlQueryFactory::with(
-        format!("
+        format!(
+            "
 SELECT {}
   FROM {}
   WHERE '' = ? AND aggregate_id = ?
-  ORDER BY sequence", event_select_fields, events_table),
-        format!("
+  ORDER BY sequence",
+            event_select_fields, events_table
+        ),
+        format!(
+            "
 INSERT INTO {} (aggregate_id, sequence, event_type, event_version, payload, metadata)
-  VALUES (?, ?, ?, ?, ?, ?)", events_table),
-        format!("
+  VALUES (?, ?, ?, ?, ?, ?)",
+            events_table
+        ),
+        format!(
+            "
 SELECT {}
   FROM {}
   WHERE '' = ?
-  ORDER BY aggregate_id, sequence", event_select_fields, events_table),
-        format!("
+  ORDER BY aggregate_id, sequence",
+            event_select_fields, events_table
+        ),
+        format!(
+            "
 SELECT {}
   FROM {}
   WHERE '' = ? AND aggregate_id = ? AND sequence > ?
-  ORDER BY sequence", event_select_fields, events_table),
-        format!("
+  ORDER BY sequence",
+            event_select_fields, events_table
+        ),
+        format!(
+            "
 INSERT INTO {} (aggregate_id, last_sequence, current_snapshot, payload)
-  VALUES (?, ?, ?, ?)", snapshots_table),
-        format!("
+  VALUES (?, ?, ?, ?)",
+            snapshots_table
+        ),
+        format!(
+            "
 UPDATE {}
   SET last_sequence = ? , payload = ?, current_snapshot = ?
-  WHERE '' = ? AND aggregate_id = ? AND current_snapshot = ?", snapshots_table),
-        format!("
+  WHERE '' = ? AND aggregate_id = ? AND current_snapshot = ?",
+            snapshots_table
+        ),
+        format!(
+            "
 SELECT '' AS aggregate_type, aggregate_id, last_sequence, current_snapshot, payload
   FROM {}
-  WHERE '' = ? AND aggregate_id = ?", snapshots_table));
+  WHERE '' = ? AND aggregate_id = ?",
+            snapshots_table
+        ),
+    );
     let repo = SqliteEventRepository::new(pool).with_query_factory(query_factory);
     let store = PersistedEventStore::new_event_store(repo); //.with_upcasters(get_upcasters());
     CqrsFramework::new(store, queries, services)
 }
 
-pub async fn start_connection_pool(database_uri: &str, max_connections: u32) -> ConnectionPool {
-    SqlitePoolOptions::new()
+pub async fn start_connection_pool(database_uri: String, max_connections: u32) -> ConnectionPool {
+    let _file = File::create("premier.db");
+    log::info!("File result: {:?}", _file);
+
+    let pool = SqlitePoolOptions::new()
         .max_connections(max_connections)
-        .connect(database_uri)
+        .connect(database_uri.as_str())
         .await
-        .expect("unable to connect to database")
+        .expect("unable to connect to database");
+
+    log::info!("Creating SQLite DB and running migrations...");
+    let _result = sqlx::migrate!("./examples/sqlite/migrations")
+        .run(&pool)
+        .await;
+    log::info!("Migration result: {:?}", _result);
+
+    pool
+}
+
+// try to reuse this generator
+pub async fn get_random_event_aggregate_id(
+    _pool: &ConnectionPool,
+    _aggregate_type: &str,
+) -> crate::presentation::Result<String> {
+    let mut rng = rand::thread_rng();
+    let id: u64 = rng.gen_range(100000000000..1000000000000);
+    Ok(id.to_string())
 }
