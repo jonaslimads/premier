@@ -6,25 +6,33 @@ use serde::Deserialize;
 
 pub mod auth;
 pub mod database;
+pub mod graphql;
 
 use crate::presentation::{PresentationError, Result};
 use auth::AuthConfig;
 use database::DatabaseConfig;
-
-const DEFAULT_PORT: u16 = 10001;
+use graphql::GraphqlConfig;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Config {
-    pub port: Option<u16>,
+    pub graphql: GraphqlConfig,
     pub database: Option<DatabaseConfig>,
     pub auth: Option<AuthConfig>,
 }
 
-impl Config {
-    pub fn get_port(&self) -> u16 {
-        self.port.unwrap_or(DEFAULT_PORT)
+impl Default for Config {
+    fn default() -> Self {
+        let config = Self {
+            graphql: GraphqlConfig::default(),
+            database: Some(DatabaseConfig::default()),
+            auth: None,
+        };
+        log::info!("Started with default {:?}", config);
+        config
     }
+}
 
+impl Config {
     pub fn get_database_or_error(&self) -> Result<&DatabaseConfig> {
         match &self.database {
             Some(database) => Ok(database),
@@ -34,12 +42,12 @@ impl Config {
         }
     }
 
-    pub fn get_auth_or_error(&self) -> Result<&AuthConfig> {
-        match &self.auth {
-            Some(auth) => Ok(auth),
-            None => Err(PresentationError::Config("No Auth config set".to_string())),
-        }
-    }
+    // pub fn get_auth_or_error(&self) -> Result<&AuthConfig> {
+    //     match &self.auth {
+    //         Some(auth) => Ok(auth),
+    //         None => Err(PresentationError::Config("No Auth config set".to_string())),
+    //     }
+    // }
 
     pub fn parse(path: Option<String>) -> Self {
         let path = match path {
@@ -64,17 +72,5 @@ impl Config {
         }
 
         toml::from_str(file_content.as_str()).unwrap()
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        let config = Self {
-            port: Some(DEFAULT_PORT),
-            database: Some(DatabaseConfig::default()),
-            auth: None,
-        };
-        log::info!("Started with config {:?}", config);
-        config
     }
 }

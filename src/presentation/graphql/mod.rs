@@ -12,13 +12,14 @@ pub mod queries;
 
 pub use crate::domain::{order::Order, product::Product, vendor::Vendor};
 pub use crate::infrastructure::{auth::SessionIntent, ConnectionPool, Cqrs};
+use crate::presentation::cli::config::graphql::GraphqlConfig;
 use crate::presentation::startup::{OrderStartup, PlatformStartup, ProductStartup, VendorStartup};
 use crate::presentation::PresentationService;
 pub use mutation_root::MutationRoot;
 pub use queries::query_root::QueryRoot;
 
 pub async fn start_graphql_server(
-    port: u16,
+    config: &GraphqlConfig,
     presentation_service: Arc<PresentationService>,
     (order_cqrs,): OrderStartup,
     (platform_cqrs, platform_query): PlatformStartup,
@@ -74,32 +75,43 @@ pub async fn start_graphql_server(
         .allow_methods(vec!["GET", "POST"])
         .allow_headers(vec!["Content-Type"]);
 
-    let routes = get_schema_sdl_route
-        .or(graphql_playground)
-        .or(graphql_post)
-        .recover(|err: Rejection| async move {
-            if let Some(GraphQLBadRequest(err)) = err.find() {
-                return Ok::<_, Infallible>(warp::reply::with_status(
-                    err.to_string(),
-                    StatusCode::BAD_REQUEST,
-                ));
-            }
+    let port = config.port;
+    log::info!("GraphQL started at http://0.0.0.0:{}", port);
 
-            Ok(warp::reply::with_status(
-                "INTERNAL_SERVER_ERROR".to_string(),
-                StatusCode::INTERNAL_SERVER_ERROR,
-            ))
-        })
-        .with(cors);
-
-    log::info!("Playground: http://0.0.0.0:{}/playground", port);
-
-    warp::serve(routes).run(([0, 0, 0, 0], port)).await;
+    if config.playground {
+        let routes = get_schema_sdl_route
+            .or(graphql_playground)
+            .or(graphql_post)
+            .recover(error_formatter)
+            .with(cors);
+        log::info!("GraphQL playground at http://0.0.0.0:{}/playground", port);
+        warp::serve(routes).run(([0, 0, 0, 0], port)).await;
+    } else {
+        let routes = get_schema_sdl_route
+            .or(graphql_post)
+            .recover(error_formatter)
+            .with(cors);
+        warp::serve(routes).run(([0, 0, 0, 0], port)).await;
+    }
 }
 
 async fn get_schema_sdl(schema_sdl: Arc<String>) -> Result<impl Reply, Rejection> {
     Ok(warp::reply::with_status(
         schema_sdl.as_ref().clone(),
         StatusCode::OK,
+    ))
+}
+
+async fn error_formatter(err: Rejection) -> Result<warp::reply::WithStatus<String>, Infallible> {
+    if let Some(GraphQLBadRequest(err)) = err.find() {
+        return Ok::<_, Infallible>(warp::reply::with_status(
+            err.to_string(),
+            StatusCode::BAD_REQUEST,
+        ));
+    }
+
+    Ok(warp::reply::with_status(
+        "INTERNAL_SERVER_ERROR".to_string(),
+        StatusCode::INTERNAL_SERVER_ERROR,
     ))
 }

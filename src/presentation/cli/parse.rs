@@ -85,7 +85,7 @@ pub async fn parse() -> Result<Option<String>> {
     match &cli.mode {
         Mode::Serve => {
             start_graphql_server(
-                config.get_port(),
+                &config.graphql,
                 presentation_service,
                 (order_cqrs.clone(),),
                 (platform_cqrs.clone(), platform_query.clone()),
