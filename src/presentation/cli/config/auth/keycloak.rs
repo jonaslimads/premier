@@ -2,7 +2,8 @@ use std::sync::Arc;
 
 use serde::Deserialize;
 
-use crate::infrastructure::auth::oidc_providers::keycloak::{Certificate, Keycloak};
+use crate::infrastructure::auth::oidc_providers::keycloak::Certificate;
+pub use crate::infrastructure::auth::oidc_providers::keycloak::Keycloak;
 
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct AuthKeycloakConfig {

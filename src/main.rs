@@ -10,17 +10,16 @@ mod presentation;
 use crate::presentation::cli;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), presentation::PresentationError> {
     env_logger::init();
 
     match cli::parse().await {
-        Err(error) => {
-            log::error!("{:?}", error);
-        }
+        Err(error) => Err(error),
         Ok(Some(result)) => {
             println!("{}", result);
+            Ok(())
         }
-        Ok(None) => {}
+        Ok(None) => Ok(()),
     }
 }
 

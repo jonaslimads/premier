@@ -4,6 +4,7 @@ use crate::infrastructure::ConnectionPool;
 use crate::presentation::Result;
 
 const DEFAULT_SQLITE_MAX_CONNECTIONS: u32 = 5;
+const DEFAULT_DATABASE_URI: &str = "sqlite://premier.db";
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct SqliteConfig {
@@ -40,7 +41,7 @@ impl Default for SqliteConfig {
     fn default() -> Self {
         Self {
             max_connections: Some(DEFAULT_SQLITE_MAX_CONNECTIONS),
-            url: "".to_string(),
+            url: DEFAULT_DATABASE_URI.to_string(),
         }
     }
 }

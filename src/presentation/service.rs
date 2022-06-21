@@ -6,13 +6,13 @@ use crate::presentation::{PresentationError, Result};
 
 pub struct PresentationService {
     pool: ConnectionPool,
-    oidc_provider: Arc<dyn OidcProvider + Send + Sync>,
+    oidc_provider: Option<Arc<dyn OidcProvider + Send + Sync>>,
 }
 
 impl PresentationService {
     pub fn new(
         pool: ConnectionPool,
-        oidc_provider: Arc<dyn OidcProvider + Send + Sync>,
+        oidc_provider: Option<Arc<dyn OidcProvider + Send + Sync>>,
     ) -> Arc<Self> {
         Arc::new(Self {
             pool,
@@ -45,11 +45,18 @@ impl PresentationService {
     }
 
     pub async fn parse_anonymous_session(&self, session_intent: SessionIntent) -> Result<Session> {
-        Ok(session_intent.parse_or_anonymous(self.oidc_provider.clone()))
+        Ok(match &self.oidc_provider {
+            Some(provider) => session_intent.parse_or_anonymous(provider.clone()),
+            None => session_intent.as_anonymous(),
+        })
     }
 
+    #[allow(dead_code)]
     pub async fn parse_session(&self, session_intent: SessionIntent) -> Result<Session> {
-        Ok(session_intent.parse(self.oidc_provider.clone())?)
+        Ok(match &self.oidc_provider {
+            Some(provider) => session_intent.parse(provider.clone())?,
+            None => session_intent.as_anonymous(),
+        })
     }
 
     // TODO make this regardless of database

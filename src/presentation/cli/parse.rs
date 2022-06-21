@@ -69,10 +69,10 @@ pub async fn parse() -> Result<Option<String>> {
         .get_database_or_error()?
         .into_connection_pool()
         .await?;
-    let keycloak = config
-        .get_auth_or_error()?
-        .get_keycloak_or_error()?
-        .into_provider();
+    let keycloak = match &config.auth {
+        Some(auth) => auth.into_keycloak(),
+        None => None,
+    };
     let presentation_service = PresentationService::new(pool.clone(), keycloak);
 
     let (order_startup, platform_startup, product_startup, vendor_startup) =

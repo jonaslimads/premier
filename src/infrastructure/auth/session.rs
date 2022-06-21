@@ -45,10 +45,7 @@ impl SessionIntent {
     }
 
     pub fn parse_or_anonymous(&self, oidc_provider: Arc<dyn OidcProvider>) -> Session {
-        self.parse(oidc_provider).unwrap_or(Session {
-            metadata: self.metadata.clone(),
-            ..Default::default()
-        })
+        self.parse(oidc_provider).unwrap_or(self.as_anonymous())
     }
 
     pub fn parse(
@@ -91,6 +88,13 @@ impl SessionIntent {
             )?,
             &Validation::new(oidc_provider.get_algorithm()),
         )
+    }
+
+    pub fn as_anonymous(&self) -> Session {
+        Session {
+            metadata: self.metadata.clone(),
+            ..Default::default()
+        }
     }
 }
 

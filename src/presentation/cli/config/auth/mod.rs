@@ -1,9 +1,11 @@
+use std::sync::Arc;
+
 use serde::Deserialize;
 
 pub mod keycloak;
 
 use self::keycloak::AuthKeycloakConfig;
-use crate::presentation::{PresentationError, Result};
+use crate::infrastructure::auth::OidcProvider;
 
 #[derive(Clone, Debug, Default, Deserialize)]
 pub struct AuthConfig {
@@ -11,12 +13,10 @@ pub struct AuthConfig {
 }
 
 impl AuthConfig {
-    pub fn get_keycloak_or_error(&self) -> Result<&AuthKeycloakConfig> {
+    pub fn into_keycloak(&self) -> Option<Arc<dyn OidcProvider + Send + Sync>> {
         match &self.keycloak {
-            Some(keycloak) => Ok(keycloak),
-            None => Err(PresentationError::Config(
-                "No Keycloak config set".to_string(),
-            )),
+            Some(keycloak_config) => Some(keycloak_config.into_provider()),
+            None => None,
         }
     }
 }

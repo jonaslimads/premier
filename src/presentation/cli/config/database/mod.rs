@@ -8,7 +8,7 @@ use crate::presentation::{PresentationError, Result};
 use mysql::MySqlConfig;
 use sqlite::SqliteConfig;
 
-#[derive(Clone, Debug, Default, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct DatabaseConfig {
     pub mysql: Option<MySqlConfig>,
     pub sqlite: Option<SqliteConfig>,
@@ -24,6 +24,15 @@ impl DatabaseConfig {
             Err(PresentationError::Config(
                 "No database config set".to_string(),
             ))
+        }
+    }
+}
+
+impl Default for DatabaseConfig {
+    fn default() -> Self {
+        Self {
+            mysql: None,
+            sqlite: Some(SqliteConfig::default()),
         }
     }
 }

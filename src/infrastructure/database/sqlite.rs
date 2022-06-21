@@ -97,7 +97,7 @@ pub async fn start_connection_pool(database_uri: String, max_connections: u32) -
         return instantiate_connection_pool(database_uri, max_connections).await;
     }
 
-    log::info!("Creating SQLite DB at path {}.", file_path);
+    log::info!("Created SQLite DB at path {}.", file_path);
     let _file = File::create(file_path);
     let pool = instantiate_connection_pool(database_uri, max_connections).await;
     let _result = sqlx::migrate!("./examples/sqlite/migrations")
