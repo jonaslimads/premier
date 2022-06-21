@@ -14,13 +14,13 @@ use crate::application::platform::commands::{
 use crate::application::product::commands::{
     AddProductCommand, AddProductVariantCommand, AddProductVariantStockCommand,
     AllocateProductStockVariantCommand, ArchiveProductCommand, CategorizeProductCommand,
-    DeallocateProductStockVariantCommand, GroupProductCommand, ProductCommand,
+    DeallocateProductStockVariantCommand, PageProductCommand, ProductCommand,
     ReallocateProductStockVariantCommand, RemoveProductVariantStockCommand,
     UnarchiveProductCommand, UpdateProductAttachmentsCommand, UpdateProductAttributesCommand,
     UpdateProductDescriptionCommand, UpdateProductNameCommand, UpdateProductSlugCommand,
 };
 use crate::application::vendor::commands::{
-    AddGroupCommand, AddVendorCommand, ArchiveVendorCommand, UnarchiveVendorCommand, VendorCommand,
+    AddPageCommand, AddVendorCommand, ArchiveVendorCommand, UnarchiveVendorCommand, VendorCommand,
 };
 use crate::presentation::cli::{Cli, Mode};
 use crate::presentation::graphql::start_graphql_server;
@@ -125,7 +125,7 @@ pub async fn parse() -> Result<Option<String>> {
                 product => ArchiveProduct,
                 product => UnarchiveProduct,
                 product => CategorizeProduct,
-                product => GroupProduct,
+                product => PageProduct,
                 product => UpdateProductName,
                 product => UpdateProductSlug,
                 product => UpdateProductDescription,
@@ -140,7 +140,7 @@ pub async fn parse() -> Result<Option<String>> {
                 vendor => AddVendor,
                 vendor => ArchiveVendor,
                 vendor => UnarchiveVendor,
-                vendor => AddGroup
+                vendor => AddPage
             }?;
 
             return pretty_print_json(json!({ "aggregate_id": aggregate_id }));

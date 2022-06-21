@@ -1,7 +1,7 @@
 mod allocation;
 mod category;
-mod group;
 mod order;
+mod page;
 mod payment_option;
 mod platform;
 mod product;
@@ -12,8 +12,8 @@ mod warehouse;
 
 pub use allocation::Allocation;
 pub use category::Category;
-pub use group::Group;
 pub use order::Order;
+pub use page::Page;
 pub use payment_option::PaymentOption;
 pub use platform::Platform;
 pub use product::Product;

@@ -4,17 +4,17 @@ use crate::commons::{HasId, HasItems, HasNestedGroups};
 use crate::domain::vendor::entities::Product;
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
-pub struct Group {
+pub struct Page {
     pub id: String,
     pub name: String,
     pub slug: String,
     pub order: u16,
     pub is_archived: bool,
-    pub children: Vec<Group>,
+    pub children: Vec<Page>,
     pub products: Vec<Product>,
 }
 
-impl Group {
+impl Page {
     pub fn new(id: String, name: String, slug: String, order: u16) -> Self {
         Self {
             id,
@@ -28,20 +28,20 @@ impl Group {
     }
 }
 
-impl HasId for Group {
+impl HasId for Page {
     fn id(&self) -> String {
         self.id.clone()
     }
 }
 
-impl HasItems<Product> for Group {
+impl HasItems<Product> for Page {
     fn get_items_mut(&mut self) -> &mut Vec<Product> {
         &mut self.products
     }
 }
 
-impl HasNestedGroups<Group> for Group {
-    fn get_groups_mut(&mut self) -> &mut Vec<Group> {
+impl HasNestedGroups<Page> for Page {
+    fn get_groups_mut(&mut self) -> &mut Vec<Page> {
         &mut self.children
     }
 }

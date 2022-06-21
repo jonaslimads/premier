@@ -13,7 +13,7 @@ pub struct ProductView {
     pub id: String,
     pub vendor: ProductViewVendor,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub group: Option<ProductViewGroup>,
+    pub page: Option<ProductViewPage>,
     pub name: String,
     pub description: String,
     pub slug: String,
@@ -37,11 +37,11 @@ impl ProductViewVendor {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
-pub struct ProductViewGroup {
+pub struct ProductViewPage {
     id: String,
 }
 
-impl ProductViewGroup {
+impl ProductViewPage {
     pub fn new(id: String) -> Self {
         Self { id }
     }
@@ -66,7 +66,7 @@ impl View<Product> for ProductView {
                 platform_id,
                 vendor_id,
                 category_id: _,
-                group_id,
+                page_id,
                 name,
                 description,
                 slug,
@@ -76,7 +76,7 @@ impl View<Product> for ProductView {
             } => {
                 self.id = id.clone();
                 self.vendor = ProductViewVendor::new(vendor_id.clone());
-                self.group = group_id.clone().map(|id| ProductViewGroup::new(id));
+                self.page = page_id.clone().map(|id| ProductViewPage::new(id));
                 self.name = name.clone();
                 self.description = description.clone();
                 self.slug = slug.clone();
@@ -92,11 +92,11 @@ impl View<Product> for ProductView {
             ProductEvent::ProductUnarchived {} => {
                 self.is_archived = false;
             }
-            ProductEvent::ProductGrouped {
+            ProductEvent::ProductPaged {
                 vendor_id: _,
-                group_id,
+                page_id,
             } => {
-                self.group = Some(ProductViewGroup::new(group_id.clone()));
+                self.page = Some(ProductViewPage::new(page_id.clone()));
             }
             ProductEvent::ProductNameUpdated { name } => {
                 self.name = name.clone();
@@ -112,5 +112,4 @@ impl View<Product> for ProductView {
     }
 }
 
-pub type ProductQuery =
-    GenericQuery<ViewRepository<ProductView, Product>, ProductView, Product>;
+pub type ProductQuery = GenericQuery<ViewRepository<ProductView, Product>, ProductView, Product>;

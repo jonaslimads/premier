@@ -10,7 +10,7 @@ pub enum ProductCommand {
     ArchiveProduct(ArchiveProductCommand),
     UnarchiveProduct(UnarchiveProductCommand),
     CategorizeProduct(CategorizeProductCommand),
-    GroupProduct(GroupProductCommand),
+    PageProduct(PageProductCommand),
     UpdateProductName(UpdateProductNameCommand),
     UpdateProductSlug(UpdateProductSlugCommand),
     UpdateProductDescription(UpdateProductDescriptionCommand),
@@ -31,7 +31,7 @@ pub struct AddProductCommand {
     pub platform_id: String,
     pub vendor_id: String,
     pub category_id: Option<String>,
-    pub group_id: Option<String>,
+    pub page_id: Option<String>,
     pub name: String,
     pub description: String,
     pub slug: String,
@@ -59,10 +59,10 @@ pub struct CategorizeProductCommand {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
-pub struct GroupProductCommand {
+pub struct PageProductCommand {
     pub id: String,
     pub vendor_id: String,
-    pub group_id: String,
+    pub page_id: String,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]

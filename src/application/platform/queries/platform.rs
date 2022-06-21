@@ -66,7 +66,7 @@ impl View<Platform> for PlatformView {
                 category_id: _,
                 product_id: _,
             } => {
-                // self.group_product(group_id, product_id)
+                // self.page_product(page_id, product_id)
             }
             PlatformEvent::PlatformNameUpdated { name } => self.name = name.clone(),
             PlatformEvent::PlatformAttributesUpdated { attributes } => {

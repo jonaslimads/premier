@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-const DEFAULT_PORT: u16 = 10001;
+const DEFAULT_PORT: u16 = 8000;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct GraphqlConfig {

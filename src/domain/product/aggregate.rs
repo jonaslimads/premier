@@ -5,7 +5,7 @@ use cqrs_es::Aggregate;
 
 use crate::application::product::commands::ProductCommand;
 use crate::application::product::services::ProductServices;
-use crate::domain::product::entities::{Category, Group, Product, Vendor};
+use crate::domain::product::entities::{Category, Page, Product, Vendor};
 use crate::domain::product::{ProductError, ProductEvent};
 
 #[async_trait]
@@ -33,7 +33,7 @@ impl Aggregate for Product {
                 platform_id: command.platform_id,
                 category_id: command.category_id,
                 vendor_id: command.vendor_id,
-                group_id: command.group_id,
+                page_id: command.page_id,
                 name: command.name,
                 description: command.description,
                 slug: command.slug,
@@ -47,9 +47,9 @@ impl Aggregate for Product {
                 platform_id: command.platform_id,
                 category_id: command.category_id,
             }],
-            ProductCommand::GroupProduct(command) => vec![ProductEvent::ProductGrouped {
+            ProductCommand::PageProduct(command) => vec![ProductEvent::ProductPaged {
                 vendor_id: command.vendor_id,
-                group_id: command.group_id,
+                page_id: command.page_id,
             }],
             ProductCommand::UpdateProductName(command) => {
                 vec![ProductEvent::ProductNameUpdated { name: command.name }]
@@ -166,7 +166,7 @@ impl Aggregate for Product {
                 platform_id: _,
                 vendor_id,
                 category_id,
-                group_id,
+                page_id,
                 name,
                 description,
                 slug,
@@ -177,7 +177,7 @@ impl Aggregate for Product {
                 self.id = id;
                 self.vendor = Vendor::new(vendor_id);
                 self.category = category_id.map(|id| Category::new(id));
-                self.group = group_id.map(|id| Group::new(id));
+                self.page = page_id.map(|id| Page::new(id));
                 self.name = name;
                 self.description = description;
                 self.slug = slug;
@@ -192,10 +192,10 @@ impl Aggregate for Product {
                 platform_id: _,
                 category_id,
             } => self.category = Some(Category::new(category_id)),
-            ProductEvent::ProductGrouped {
+            ProductEvent::ProductPaged {
                 vendor_id: _,
-                group_id,
-            } => self.group = Some(Group::new(group_id)),
+                page_id,
+            } => self.page = Some(Page::new(page_id)),
             ProductEvent::ProductNameUpdated { name } => self.name = name,
             ProductEvent::ProductDescriptionUpdated { description } => {
                 self.description = description
@@ -430,7 +430,7 @@ mod aggregate_tests {
             platform_id: PLATFORM_ID.to_string(),
             vendor_id: VENDOR_ID.to_string(),
             category_id: None,
-            group_id: None,
+            page_id: None,
             name: "".to_string(),
             description: "".to_string(),
             slug: "".to_string(),

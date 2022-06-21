@@ -83,7 +83,7 @@ impl Aggregate for Platform {
                 category_id: _,
                 product_id: _,
             } => {
-                // self.group_product(group_id, product_id)
+                // self.page_product(category_id, product_id)
             }
             PlatformEvent::PlatformNameUpdated { name } => self.name = name,
             PlatformEvent::PlatformAttributesUpdated { attributes } => self.attributes = attributes,

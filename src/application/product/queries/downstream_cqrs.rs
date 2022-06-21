@@ -9,7 +9,7 @@ use crate::domain::vendor::Vendor;
 use crate::infrastructure::Cqrs;
 
 use crate::application::platform::commands::{CategorizeProductCommand, PlatformCommand};
-use crate::application::vendor::commands::{GroupProductCommand, VendorCommand};
+use crate::application::vendor::commands::{PageProductCommand, VendorCommand};
 
 pub struct DownstreamCqrs {
     platform_cqrs: Arc<Cqrs<Platform>>,
@@ -24,11 +24,11 @@ impl DownstreamCqrs {
         }
     }
 
-    pub async fn group_product(&self, vendor_id: String, group_id: String, product_id: String) {
+    pub async fn page_product(&self, vendor_id: String, page_id: String, product_id: String) {
         let vendor_id = vendor_id.clone();
-        let command = VendorCommand::GroupProduct(GroupProductCommand {
+        let command = VendorCommand::PageProduct(PageProductCommand {
             id: vendor_id.clone(),
-            group_id: group_id.clone(),
+            page_id: page_id.clone(),
             product_id: product_id.to_string(),
         });
         let _ = self.vendor_cqrs.execute(vendor_id.as_str(), command).await;
@@ -62,7 +62,7 @@ impl Query<Product> for DownstreamCqrs {
                     platform_id,
                     category_id,
                     vendor_id,
-                    group_id,
+                    page_id,
                     ..
                 } => {
                     if let Some(category_id) = category_id.clone() {
@@ -73,10 +73,10 @@ impl Query<Product> for DownstreamCqrs {
                         )
                         .await;
                     }
-                    if let Some(group_id) = group_id.clone() {
-                        self.group_product(
+                    if let Some(page_id) = page_id.clone() {
+                        self.page_product(
                             vendor_id.clone(),
-                            group_id.clone(),
+                            page_id.clone(),
                             aggregate_id.to_string(),
                         )
                         .await;
@@ -93,16 +93,9 @@ impl Query<Product> for DownstreamCqrs {
                     )
                     .await;
                 }
-                ProductEvent::ProductGrouped {
-                    vendor_id,
-                    group_id,
-                } => {
-                    self.group_product(
-                        vendor_id.clone(),
-                        group_id.clone(),
-                        aggregate_id.to_string(),
-                    )
-                    .await;
+                ProductEvent::ProductPaged { vendor_id, page_id } => {
+                    self.page_product(vendor_id.clone(), page_id.clone(), aggregate_id.to_string())
+                        .await;
                 }
                 _ => {}
             }

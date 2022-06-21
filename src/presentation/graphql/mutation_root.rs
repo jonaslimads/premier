@@ -14,13 +14,13 @@ use crate::application::platform::commands::{
 use crate::application::product::commands::{
     AddProductCommand, AddProductVariantCommand, AddProductVariantStockCommand,
     AllocateProductStockVariantCommand, ArchiveProductCommand, CategorizeProductCommand,
-    DeallocateProductStockVariantCommand, GroupProductCommand, ProductCommand,
+    DeallocateProductStockVariantCommand, PageProductCommand, ProductCommand,
     ReallocateProductStockVariantCommand, RemoveProductVariantStockCommand,
     UnarchiveProductCommand, UpdateProductAttachmentsCommand, UpdateProductAttributesCommand,
     UpdateProductDescriptionCommand, UpdateProductNameCommand, UpdateProductSlugCommand,
 };
 use crate::application::vendor::commands::{
-    AddGroupCommand, AddVendorCommand, ArchiveVendorCommand, UnarchiveVendorCommand, VendorCommand,
+    AddPageCommand, AddVendorCommand, ArchiveVendorCommand, UnarchiveVendorCommand, VendorCommand,
 };
 use crate::domain::order::Order;
 use crate::domain::platform::Platform;
@@ -135,7 +135,7 @@ mutation_root!(
     product => ArchiveProduct,
     product => UnarchiveProduct,
     product => CategorizeProduct,
-    product => GroupProduct,
+    product => PageProduct,
     product => UpdateProductName,
     product => UpdateProductSlug,
     product => UpdateProductDescription,
@@ -150,5 +150,5 @@ mutation_root!(
     vendor => AddVendor,
     vendor => ArchiveVendor,
     vendor => UnarchiveVendor,
-    vendor => AddGroup
+    vendor => AddPage
 );

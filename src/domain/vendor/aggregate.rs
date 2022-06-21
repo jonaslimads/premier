@@ -4,7 +4,7 @@ use cqrs_es::Aggregate;
 use crate::application::vendor::commands::VendorCommand;
 use crate::application::vendor::services::VendorServices;
 use crate::commons::{HasNestedGroups, HasNestedGroupsWithItems};
-use crate::domain::vendor::entities::{Group, Platform, Vendor};
+use crate::domain::vendor::entities::{Page, Platform, Vendor};
 use crate::domain::vendor::{VendorError, VendorEvent};
 
 #[async_trait]
@@ -35,15 +35,15 @@ impl Aggregate for Vendor {
             }],
             VendorCommand::ArchiveVendor(_) => vec![VendorEvent::VendorArchived {}],
             VendorCommand::UnarchiveVendor(_) => vec![VendorEvent::VendorUnarchived {}],
-            VendorCommand::AddGroup(command) => vec![VendorEvent::GroupAdded {
-                group_id: command.group_id,
+            VendorCommand::AddPage(command) => vec![VendorEvent::PageAdded {
+                page_id: command.page_id,
                 name: command.name,
                 slug: command.slug,
                 order: command.order,
-                parent_group_id: command.parent_group_id,
+                parent_page_id: command.parent_page_id,
             }],
-            VendorCommand::GroupProduct(command) => vec![VendorEvent::ProductGrouped {
-                group_id: command.group_id,
+            VendorCommand::PageProduct(command) => vec![VendorEvent::ProductPaged {
+                page_id: command.page_id,
                 product_id: command.product_id,
             }],
         })
@@ -65,17 +65,17 @@ impl Aggregate for Vendor {
             }
             VendorEvent::VendorArchived {} => self.is_archived = true,
             VendorEvent::VendorUnarchived {} => self.is_archived = false,
-            VendorEvent::GroupAdded {
-                group_id,
+            VendorEvent::PageAdded {
+                page_id,
                 name,
                 slug,
                 order,
-                parent_group_id,
-            } => self.add_group(Group::new(group_id, name, slug, order), parent_group_id),
-            VendorEvent::ProductGrouped {
-                group_id,
+                parent_page_id,
+            } => self.add_group(Page::new(page_id, name, slug, order), parent_page_id),
+            VendorEvent::ProductPaged {
+                page_id,
                 product_id,
-            } => self.group(group_id, product_id),
+            } => self.group(page_id, product_id),
         }
     }
 }

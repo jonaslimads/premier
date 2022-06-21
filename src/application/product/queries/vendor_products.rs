@@ -19,14 +19,14 @@ impl View<Product> for VendorProductsView {
                 platform_id: _,
                 vendor_id: _,
                 category_id: _,
-                group_id: _,
+                page_id: _,
                 name,
                 description: _,
                 slug,
                 currency,
                 attachments,
                 attributes,
-            } => self.ungrouped_products.push(VendorProductsViewProduct {
+            } => self.unpaged_products.push(VendorProductsViewProduct {
                 id: id.clone(),
                 name: name.clone(),
                 slug: slug.clone(),

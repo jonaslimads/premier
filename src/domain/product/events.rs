@@ -17,7 +17,7 @@ event_enum! {
             #[serde(skip_serializing_if = "Option::is_none")]
             category_id: Option<String>,
             #[serde(skip_serializing_if = "Option::is_none")]
-            group_id: Option<String>,
+            page_id: Option<String>,
             name: String,
             description: String,
             slug: String,
@@ -33,9 +33,9 @@ event_enum! {
             platform_id: String,
             category_id: String,
         },
-        ProductGrouped {
+        ProductPaged {
             vendor_id: String,
-            group_id: String,
+            page_id: String,
         },
         ProductNameUpdated {
             name: String,

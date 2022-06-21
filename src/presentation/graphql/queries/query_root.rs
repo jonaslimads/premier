@@ -7,7 +7,7 @@ use crate::application::platform::queries::platform::{
 };
 use crate::application::product::queries::product::{ProductQuery, ProductView, ProductViewReview};
 use crate::application::vendor::queries::vendor_products::{
-    VendorProductsQuery, VendorProductsView, VendorProductsViewGroup, VendorProductsViewProduct,
+    VendorProductsQuery, VendorProductsView, VendorProductsViewPage, VendorProductsViewProduct,
 };
 use crate::commons::{HasNestedGroups, HasNestedGroupsWithItems};
 use crate::presentation::graphql::queries::utils::{
@@ -45,6 +45,24 @@ impl QueryRoot {
         query_vec(categories, after, before, first, last).await
     }
 
+    async fn category(
+        &self,
+        context: &Context<'_>,
+        id: String,
+        _filter: Filter,
+    ) -> Result<Option<PlatformViewCategory>> {
+        let query = context.data_unchecked::<Arc<PlatformQuery>>().clone();
+        let platform = query.load("0").await.clone();
+        let mut categories = match platform.map(|v| v.categories) {
+            Some(categories) => categories,
+            None => return Ok(None),
+        };
+        match PlatformViewCategory::get_group_mut(&mut categories, id) {
+            Some(category) => Ok(Some(category.clone())),
+            None => return Ok(None),
+        }
+    }
+
     async fn vendor(
         &self,
         context: &Context<'_>,
@@ -62,7 +80,7 @@ impl QueryRoot {
         }
     }
 
-    async fn groups(
+    async fn pages(
         &self,
         context: &Context<'_>,
         filter: Filter,
@@ -71,13 +89,13 @@ impl QueryRoot {
         before: Option<String>,
         first: Option<i32>,
         last: Option<i32>,
-    ) -> Result<Connection<VendorProductsViewGroup>> {
+    ) -> Result<Connection<VendorProductsViewPage>> {
         let vendor_id = get_from_filter(&filter, "vendorId")?;
         let query = context.data_unchecked::<Arc<VendorProductsQuery>>().clone();
         let vendor = query.load(vendor_id.as_str()).await.clone();
-        let mut groups = vendor.map(|v| v.groups);
-        sort!(groups, sort, name);
-        query_vec(groups, after, before, first, last).await
+        let mut pages = vendor.map(|v| v.pages);
+        sort!(pages, sort, name);
+        query_vec(pages, after, before, first, last).await
     }
 
     async fn products(
@@ -91,7 +109,7 @@ impl QueryRoot {
         last: Option<i32>,
     ) -> Result<Connection<VendorProductsViewProduct, ProductAdditionalFields>> {
         let vendor_id = get_from_filter(&filter, "vendorId")?;
-        let group_id = opt_from_filter(&filter, "groupId");
+        let page_id = opt_from_filter(&filter, "pageId");
         let query = context.data_unchecked::<Arc<VendorProductsQuery>>().clone();
         let vendor = query.load(vendor_id.as_str()).await.clone();
         let mut vendor = match vendor {
@@ -99,13 +117,13 @@ impl QueryRoot {
             None => return Ok(empty_connection()),
         };
 
-        let (mut products, group_id) = if let Some(group_id) = group_id {
-            let mut groups = vendor.groups;
-            let group = match VendorProductsView::get_group_mut(&mut groups, group_id.clone()) {
-                Some(group) => group,
+        let (mut products, page_id) = if let Some(page_id) = page_id {
+            let mut pages = vendor.pages;
+            let page = match VendorProductsView::get_group_mut(&mut pages, page_id.clone()) {
+                Some(page) => page,
                 None => return Ok(empty_connection()),
             };
-            (Some(group.products.clone()), group_id.clone())
+            (Some(page.products.clone()), page_id.clone())
         } else {
             (Some(vendor.get_all_items()), "".to_string())
         };
@@ -117,7 +135,7 @@ impl QueryRoot {
             before,
             first,
             last,
-            Box::new(move |_| ProductAdditionalFields::new(group_id.clone())),
+            Box::new(move |_| ProductAdditionalFields::new(page_id.clone())),
         )
         .await
     }
@@ -140,21 +158,21 @@ impl QueryRoot {
         query_vec(reviews, after, before, first, last).await
     }
 
-    async fn group(
+    async fn page(
         &self,
         context: &Context<'_>,
         id: String,
         filter: Filter,
-    ) -> Result<Option<VendorProductsViewGroup>> {
+    ) -> Result<Option<VendorProductsViewPage>> {
         let vendor_id = get_from_filter(&filter, "vendorId")?;
         let query = context.data_unchecked::<Arc<VendorProductsQuery>>().clone();
         let vendor = query.load(vendor_id.as_str()).await.clone();
-        let mut groups = match vendor.map(|v| v.groups) {
-            Some(groups) => groups,
+        let mut pages = match vendor.map(|v| v.pages) {
+            Some(pages) => pages,
             None => return Ok(None),
         };
-        match VendorProductsView::get_group_mut(&mut groups, id) {
-            Some(group) => Ok(Some(group.clone())),
+        match VendorProductsView::get_group_mut(&mut pages, id) {
+            Some(page) => Ok(Some(page.clone())),
             None => return Ok(None),
         }
     }
@@ -167,11 +185,11 @@ impl QueryRoot {
 
 #[derive(SimpleObject)]
 struct ProductAdditionalFields {
-    group_id: String,
+    page_id: String,
 }
 
 impl ProductAdditionalFields {
-    fn new(group_id: String) -> Self {
-        Self { group_id }
+    fn new(page_id: String) -> Self {
+        Self { page_id }
     }
 }

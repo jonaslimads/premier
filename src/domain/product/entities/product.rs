@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::domain::product::entities::{Category, Group, Variant, Vendor};
+use crate::domain::product::entities::{Category, Page, Variant, Vendor};
 use crate::domain::product::ProductError;
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
@@ -9,7 +9,7 @@ pub struct Product {
     pub id: String,
     pub vendor: Vendor,
     pub category: Option<Category>,
-    pub group: Option<Group>,
+    pub page: Option<Page>,
     pub name: String,
     pub description: String,
     pub slug: String,

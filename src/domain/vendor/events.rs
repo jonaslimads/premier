@@ -17,16 +17,16 @@ event_enum! {
         },
         VendorArchived {},
         VendorUnarchived {},
-        GroupAdded {
-            group_id: String,
+        PageAdded {
+            page_id: String,
             name: String,
             slug: String,
             order: u16,
             #[serde(skip_serializing_if = "Option::is_none")]
-            parent_group_id: Option<String>,
+            parent_page_id: Option<String>,
         },
-        ProductGrouped {
-            group_id: String,
+        ProductPaged {
+            page_id: String,
             product_id: String,
         },
     }

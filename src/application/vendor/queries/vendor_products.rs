@@ -4,10 +4,10 @@ use cqrs_es::{EventEnvelope, View};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::commons::{HasId, HasItems, HasNestedGroups, HasNestedGroupsWithItems};
 use crate::domain::vendor::events::VendorEvent;
 use crate::domain::vendor::Vendor;
 use crate::infrastructure::ViewRepository;
-use crate::commons::{HasId, HasItems, HasNestedGroups, HasNestedGroupsWithItems};
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
 pub struct VendorProductsView {
@@ -15,12 +15,12 @@ pub struct VendorProductsView {
     pub name: String,
     pub attributes: Value,
     pub is_archived: bool,
-    pub groups: Vec<VendorProductsViewGroup>,
-    pub ungrouped_products: Vec<VendorProductsViewProduct>,
+    pub pages: Vec<VendorProductsViewPage>,
+    pub unpaged_products: Vec<VendorProductsViewProduct>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
-pub struct VendorProductsViewGroup {
+pub struct VendorProductsViewPage {
     pub id: String,
     pub name: String,
     pub slug: String,
@@ -28,7 +28,7 @@ pub struct VendorProductsViewGroup {
     pub order: u16,
     #[graphql(skip)]
     pub is_archived: bool,
-    pub children: Vec<VendorProductsViewGroup>,
+    pub children: Vec<VendorProductsViewPage>,
     pub products: Vec<VendorProductsViewProduct>,
 }
 
@@ -60,20 +60,20 @@ impl View<Vendor> for VendorProductsView {
             }
             VendorEvent::VendorArchived {} => self.is_archived = true,
             VendorEvent::VendorUnarchived {} => self.is_archived = false,
-            VendorEvent::GroupAdded {
-                group_id,
+            VendorEvent::PageAdded {
+                page_id,
                 name,
                 slug,
                 order,
-                parent_group_id,
+                parent_page_id,
             } => self.add_group(
-                VendorProductsViewGroup::new(group_id.clone(), name.clone(), slug.clone(), *order),
-                parent_group_id.clone(),
+                VendorProductsViewPage::new(page_id.clone(), name.clone(), slug.clone(), *order),
+                parent_page_id.clone(),
             ),
-            VendorEvent::ProductGrouped {
-                group_id,
+            VendorEvent::ProductPaged {
+                page_id,
                 product_id,
-            } => self.group(group_id.clone(), product_id.clone()),
+            } => self.group(page_id.clone(), product_id.clone()),
         }
     }
 }
@@ -81,7 +81,7 @@ impl View<Vendor> for VendorProductsView {
 pub type VendorProductsQuery =
     GenericQuery<ViewRepository<VendorProductsView, Vendor>, VendorProductsView, Vendor>;
 
-impl VendorProductsViewGroup {
+impl VendorProductsViewPage {
     pub fn new(id: String, name: String, slug: String, order: u16) -> Self {
         Self {
             id,
@@ -95,7 +95,7 @@ impl VendorProductsViewGroup {
     }
 }
 
-impl HasId for VendorProductsViewGroup {
+impl HasId for VendorProductsViewPage {
     fn id(&self) -> String {
         self.id.clone()
     }
@@ -109,35 +109,35 @@ impl HasId for VendorProductsViewProduct {
 
 impl HasItems<VendorProductsViewProduct> for VendorProductsView {
     fn get_items_mut(&mut self) -> &mut Vec<VendorProductsViewProduct> {
-        &mut self.ungrouped_products
+        &mut self.unpaged_products
     }
 }
 
-impl HasItems<VendorProductsViewProduct> for VendorProductsViewGroup {
+impl HasItems<VendorProductsViewProduct> for VendorProductsViewPage {
     fn get_items_mut(&mut self) -> &mut Vec<VendorProductsViewProduct> {
         &mut self.products
     }
 }
 
-impl HasNestedGroups<VendorProductsViewGroup> for VendorProductsView {
-    fn get_groups_mut(&mut self) -> &mut Vec<VendorProductsViewGroup> {
-        &mut self.groups
+impl HasNestedGroups<VendorProductsViewPage> for VendorProductsView {
+    fn get_groups_mut(&mut self) -> &mut Vec<VendorProductsViewPage> {
+        &mut self.pages
     }
 }
 
-impl HasNestedGroups<VendorProductsViewGroup> for VendorProductsViewGroup {
-    fn get_groups_mut(&mut self) -> &mut Vec<VendorProductsViewGroup> {
+impl HasNestedGroups<VendorProductsViewPage> for VendorProductsViewPage {
+    fn get_groups_mut(&mut self) -> &mut Vec<VendorProductsViewPage> {
         &mut self.children
     }
 
     fn find_insertion_position(
-        groups: &Vec<VendorProductsViewGroup>,
-        new_group: &VendorProductsViewGroup,
+        pages: &Vec<VendorProductsViewPage>,
+        new_page: &VendorProductsViewPage,
     ) -> Option<usize> {
         let mut position = 0_usize;
-        for group in groups {
-            if (new_group.order < group.order)
-                || (new_group.order == group.order && new_group.name < group.name)
+        for page in pages {
+            if (new_page.order < page.order)
+                || (new_page.order == page.order && new_page.name < page.name)
             {
                 return Some(position);
             }
@@ -147,7 +147,7 @@ impl HasNestedGroups<VendorProductsViewGroup> for VendorProductsViewGroup {
     }
 }
 
-impl<'a> HasNestedGroupsWithItems<'a, VendorProductsViewGroup, VendorProductsViewProduct>
+impl<'a> HasNestedGroupsWithItems<'a, VendorProductsViewPage, VendorProductsViewProduct>
     for VendorProductsView
 {
 }

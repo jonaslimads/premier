@@ -10,8 +10,8 @@ pub enum VendorCommand {
     AddVendor(AddVendorCommand),
     ArchiveVendor(ArchiveVendorCommand),
     UnarchiveVendor(UnarchiveVendorCommand),
-    AddGroup(AddGroupCommand),
-    GroupProduct(GroupProductCommand),
+    AddPage(AddPageCommand),
+    PageProduct(PageProductCommand),
 }
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
@@ -34,18 +34,18 @@ pub struct UnarchiveVendorCommand {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
-pub struct AddGroupCommand {
+pub struct AddPageCommand {
     pub id: String,
-    pub group_id: String,
+    pub page_id: String,
     pub name: String,
     pub slug: String,
     pub order: u16,
-    pub parent_group_id: Option<String>,
+    pub parent_page_id: Option<String>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
-pub struct GroupProductCommand {
+pub struct PageProductCommand {
     pub id: String,
-    pub group_id: String,
+    pub page_id: String,
     pub product_id: String,
 }
