@@ -14,8 +14,8 @@ pub struct Cli {
     #[clap(subcommand)]
     pub mode: Mode,
 
-    #[clap(short, long, default_value_t = String::from("premier.toml"))]
-    pub config: String,
+    #[clap(short, long)]
+    pub config: Option<String>,
 }
 
 #[derive(Debug, Subcommand)]

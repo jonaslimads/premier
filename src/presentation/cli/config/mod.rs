@@ -6,26 +6,33 @@ use serde::Deserialize;
 
 pub mod auth;
 pub mod database;
+pub mod graphql;
 
 use crate::presentation::{PresentationError, Result};
 use auth::AuthConfig;
 use database::DatabaseConfig;
-
-const DEFAULT_PORT: u16 = 10001;
-const DEFAULT_DATABASE_URI: &str = "sqlite://database.db";
+use graphql::GraphqlConfig;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Config {
-    pub port: Option<u16>,
+    pub graphql: GraphqlConfig,
     pub database: Option<DatabaseConfig>,
     pub auth: Option<AuthConfig>,
 }
 
-impl Config {
-    pub fn get_port(&self) -> u16 {
-        self.port.unwrap_or(DEFAULT_PORT)
+impl Default for Config {
+    fn default() -> Self {
+        let config = Self {
+            graphql: GraphqlConfig::default(),
+            database: Some(DatabaseConfig::default()),
+            auth: None,
+        };
+        log::info!("Started with default {:?}", config);
+        config
     }
+}
 
+impl Config {
     pub fn get_database_or_error(&self) -> Result<&DatabaseConfig> {
         match &self.database {
             Some(database) => Ok(database),
@@ -35,31 +42,24 @@ impl Config {
         }
     }
 
-    pub fn get_auth_or_error(&self) -> Result<&AuthConfig> {
-        match &self.auth {
-            Some(auth) => Ok(auth),
-            None => Err(PresentationError::Config("No Auth config set".to_string())),
-        }
-    }
-
-    // pub async fn into_connection_pool(&self) -> ConnectionPool {
-    //     let mysql = match self.mysql.clone() {
-    //         Some(mysql) => mysql,
-    //         None => MySqlConfig::default(),
-    //     };
-    //     start_connection_pool(mysql.url.as_str(), mysql.get_max_connections()).await
+    // pub fn get_auth_or_error(&self) -> Result<&AuthConfig> {
+    //     match &self.auth {
+    //         Some(auth) => Ok(auth),
+    //         None => Err(PresentationError::Config("No Auth config set".to_string())),
+    //     }
     // }
 
-    pub fn parse(path: String) -> Self {
+    pub fn parse(path: Option<String>) -> Self {
+        let path = match path {
+            Some(path) => path,
+            None => return Config::default(),
+        };
         let path = Path::new(path.as_str());
         let display = path.display();
 
         let mut file = match File::open(&path) {
             Err(error) => {
-                println!(
-                    "Couldn't open {}: {}\n\nStarting with default connection {}...",
-                    display, error, DEFAULT_DATABASE_URI
-                );
+                log::error!("Couldn't open {}: {}", display, error);
                 return Config::default();
             }
             Ok(file) => file,
@@ -72,15 +72,5 @@ impl Config {
         }
 
         toml::from_str(file_content.as_str()).unwrap()
-    }
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            port: Some(DEFAULT_PORT),
-            database: None,
-            auth: None,
-        }
     }
 }

@@ -67,13 +67,12 @@ pub async fn parse() -> Result<Option<String>> {
 
     let pool = config
         .get_database_or_error()?
-        .get_mysql_or_error()?
         .into_connection_pool()
-        .await;
-    let keycloak = config
-        .get_auth_or_error()?
-        .get_keycloak_or_error()?
-        .into_provider();
+        .await?;
+    let keycloak = match &config.auth {
+        Some(auth) => auth.into_keycloak(),
+        None => None,
+    };
     let presentation_service = PresentationService::new(pool.clone(), keycloak);
 
     let (order_startup, platform_startup, product_startup, vendor_startup) =
@@ -86,7 +85,7 @@ pub async fn parse() -> Result<Option<String>> {
     match &cli.mode {
         Mode::Serve => {
             start_graphql_server(
-                config.get_port(),
+                &config.graphql,
                 presentation_service,
                 (order_cqrs.clone(),),
                 (platform_cqrs.clone(), platform_query.clone()),

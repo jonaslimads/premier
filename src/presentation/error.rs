@@ -49,6 +49,9 @@ pub enum PresentationError {
 
     #[error("Required {0}")]
     Required(String),
+
+    #[error("Release {0}")]
+    Release(String),
 }
 
 impl From<AggregateError<OrderError>> for PresentationError {

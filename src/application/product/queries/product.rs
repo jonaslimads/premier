@@ -1,12 +1,12 @@
 use async_graphql::SimpleObject;
 use cqrs_es::persist::GenericQuery;
 use cqrs_es::{EventEnvelope, View};
-use mysql_es::MysqlViewRepository;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::domain::product::events::ProductEvent;
 use crate::domain::product::Product;
+use crate::infrastructure::ViewRepository;
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
 pub struct ProductView {
@@ -113,4 +113,4 @@ impl View<Product> for ProductView {
 }
 
 pub type ProductQuery =
-    GenericQuery<MysqlViewRepository<ProductView, Product>, ProductView, Product>;
+    GenericQuery<ViewRepository<ProductView, Product>, ProductView, Product>;

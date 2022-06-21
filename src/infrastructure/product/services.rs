@@ -21,14 +21,18 @@ impl ProductLookupTrait for ProductLookup {
         vendor_id: String,
         product_id: String,
     ) -> Result<(), ApplicationError> {
-        sqlx::query(
-            "INSERT INTO vendor_product VALUES(?, ?) ON DUPLICATE KEY UPDATE product_id = product_id",
-        )
-        .bind(vendor_id)
-        .bind(product_id)
-        .execute(&self.pool)
-        .await
-        .map_err(InfrastructureError::from)?;
+        let sql = if cfg!(feature = "sqlite") {
+            "INSERT OR IGNORE INTO vendor_product VALUES(?, ?)"
+            // "INSERT INTO vendor_product VALUES(?, ?) ON CONFLICT(vendor_id, product_id) DO UPDATE SET product_id = product_id"
+        } else {
+            "INSERT INTO vendor_product VALUES(?, ?) ON DUPLICATE KEY UPDATE product_id = product_id"
+        };
+        sqlx::query(sql)
+            .bind(vendor_id)
+            .bind(product_id)
+            .execute(&self.pool)
+            .await
+            .map_err(InfrastructureError::from)?;
         Ok(())
     }
 
@@ -36,13 +40,13 @@ impl ProductLookupTrait for ProductLookup {
         &self,
         product_id: String,
     ) -> Result<String, ApplicationError> {
-        let row: (String,) = sqlx::query_as(
-            "SELECT CAST(vendor_id AS CHAR) AS vendor_id FROM vendor_product WHERE product_id = ?",
-        )
-        .bind(product_id)
-        .fetch_one(&self.pool)
-        .await
-        .map_err(InfrastructureError::from)?;
+        let sql =
+            "SELECT CAST(vendor_id AS CHAR) AS vendor_id FROM vendor_product WHERE product_id = ?";
+        let row: (String,) = sqlx::query_as(sql)
+            .bind(product_id)
+            .fetch_one(&self.pool)
+            .await
+            .map_err(InfrastructureError::from)?;
         Ok(row.0)
     }
 }

@@ -12,5 +12,6 @@ Cargo.lock
 async-graphql/
 sqlx/
 
-premier.toml
+*premier*.toml
 ideas.txt
+premier.db*
