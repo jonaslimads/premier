@@ -1,5 +1,6 @@
 use rand::Rng;
 use std::fs::File;
+use std::path::Path;
 
 use cqrs_es::persist::PersistedEventStore;
 use cqrs_es::{Aggregate, CqrsFramework, Query};
@@ -90,22 +91,28 @@ SELECT '' AS aggregate_type, aggregate_id, last_sequence, current_snapshot, payl
 }
 
 pub async fn start_connection_pool(database_uri: String, max_connections: u32) -> ConnectionPool {
-    let _file = File::create("premier.db");
-    log::info!("File result: {:?}", _file);
+    let file_path = database_uri.replace("sqlite://", "");
+    if Path::new(file_path.as_str()).exists() {
+        log::info!("Database {} found.", file_path);
+        return instantiate_connection_pool(database_uri, max_connections).await;
+    }
 
-    let pool = SqlitePoolOptions::new()
-        .max_connections(max_connections)
-        .connect(database_uri.as_str())
-        .await
-        .expect("unable to connect to database");
-
-    log::info!("Creating SQLite DB and running migrations...");
+    log::info!("Creating SQLite DB at path {}.", file_path);
+    let _file = File::create(file_path);
+    let pool = instantiate_connection_pool(database_uri, max_connections).await;
     let _result = sqlx::migrate!("./examples/sqlite/migrations")
         .run(&pool)
         .await;
-    log::info!("Migration result: {:?}", _result);
-
+    log::info!("Applied migrations.");
     pool
+}
+
+async fn instantiate_connection_pool(database_uri: String, max_connections: u32) -> ConnectionPool {
+    SqlitePoolOptions::new()
+        .max_connections(max_connections)
+        .connect(database_uri.as_str())
+        .await
+        .expect("unable to connect to database")
 }
 
 // try to reuse this generator
