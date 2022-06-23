@@ -75,7 +75,9 @@ impl Aggregate for Vendor {
             VendorEvent::ProductPaged {
                 page_id,
                 product_id,
-            } => self.group(page_id, product_id),
+            } => {
+                self.group(page_id, product_id);
+            }
         }
     }
 }

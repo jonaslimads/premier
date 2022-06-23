@@ -24,19 +24,9 @@ impl HasNestedGroups<Category> for Platform {
         &mut self.categories
     }
 
-    fn find_insertion_position(
-        categories: &Vec<Category>,
-        new_category: &Category,
-    ) -> Option<usize> {
-        let mut position = 0_usize;
-        for category in categories {
-            if (new_category.order < category.order)
-                || (new_category.order == category.order && new_category.name < category.name)
-            {
-                return Some(position);
-            }
-            position += 1;
-        }
-        Some(position)
+    fn get_comparator() -> Option<Box<dyn Fn(&Category, &Category) -> bool>> {
+        Some(Box::new(|new, current| {
+            (new.order < current.order) || (new.order == current.order && new.name < current.name)
+        }))
     }
 }

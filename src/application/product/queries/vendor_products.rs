@@ -39,22 +39,22 @@ impl View<Product> for VendorProductsView {
             ProductEvent::ProductArchived {} => {
                 self.mutate_item(event.aggregate_id.clone(), &mut |product| {
                     product.is_archived = true;
-                })
+                });
             }
             ProductEvent::ProductUnarchived {} => {
                 self.mutate_item(event.aggregate_id.clone(), &mut |product| {
                     product.is_archived = false;
-                })
+                });
             }
             ProductEvent::ProductNameUpdated { name } => {
                 self.mutate_item(event.aggregate_id.clone(), &mut |product| {
                     product.name = name.clone();
-                })
+                });
             }
             ProductEvent::ProductSlugUpdated { slug } => {
                 self.mutate_item(event.aggregate_id.clone(), &mut |product| {
                     product.slug = slug.clone();
-                })
+                });
             }
             _ => {}
         }

@@ -73,7 +73,9 @@ impl View<Vendor> for VendorProductsView {
             VendorEvent::ProductPaged {
                 page_id,
                 product_id,
-            } => self.group(page_id.clone(), product_id.clone()),
+            } => {
+                self.group(page_id.clone(), product_id.clone());
+            }
         }
     }
 }
@@ -130,20 +132,11 @@ impl HasNestedGroups<VendorProductsViewPage> for VendorProductsViewPage {
         &mut self.children
     }
 
-    fn find_insertion_position(
-        pages: &Vec<VendorProductsViewPage>,
-        new_page: &VendorProductsViewPage,
-    ) -> Option<usize> {
-        let mut position = 0_usize;
-        for page in pages {
-            if (new_page.order < page.order)
-                || (new_page.order == page.order && new_page.name < page.name)
-            {
-                return Some(position);
-            }
-            position += 1;
-        }
-        Some(position)
+    fn get_comparator(
+    ) -> Option<Box<dyn Fn(&VendorProductsViewPage, &VendorProductsViewPage) -> bool>> {
+        Some(Box::new(|new, current| {
+            (new.order < current.order) || (new.order == current.order && new.name < current.name)
+        }))
     }
 }
 

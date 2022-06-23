@@ -109,20 +109,11 @@ impl HasNestedGroups<PlatformViewCategory> for PlatformView {
         &mut self.categories
     }
 
-    fn find_insertion_position(
-        categories: &Vec<PlatformViewCategory>,
-        new_category: &PlatformViewCategory,
-    ) -> Option<usize> {
-        let mut position = 0_usize;
-        for category in categories {
-            if (new_category.order < category.order)
-                || (new_category.order == category.order && new_category.name < category.name)
-            {
-                return Some(position);
-            }
-            position += 1;
-        }
-        Some(position)
+    fn get_comparator() -> Option<Box<dyn Fn(&PlatformViewCategory, &PlatformViewCategory) -> bool>>
+    {
+        Some(Box::new(|new, current| {
+            (new.order < current.order) || (new.order == current.order && new.name < current.name)
+        }))
     }
 }
 
