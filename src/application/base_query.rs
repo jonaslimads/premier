@@ -4,6 +4,8 @@ use std::sync::Arc;
 use cqrs_es::persist::{PersistenceError, ViewContext, ViewRepository};
 use cqrs_es::{Aggregate, EventEnvelope, View};
 
+use crate::commons::ExtendedViewRepository;
+
 type ErrorHandler = dyn Fn(PersistenceError) + Send + Sync + 'static;
 
 pub struct BaseQuery<R, V, A, S>
@@ -20,7 +22,7 @@ where
 
 impl<R, V, A, S> BaseQuery<R, V, A, S>
 where
-    R: ViewRepository<V, A>,
+    R: ViewRepository<V, A> + ExtendedViewRepository<V, A>,
     V: View<A>,
     A: Aggregate,
 {
@@ -57,6 +59,14 @@ where
         }
     }
 
+    pub async fn load_all(&self) -> Result<Vec<V>, PersistenceError> {
+        self.view_repository.load_all().await
+    }
+
+    pub async fn load_many(&self, view_ids: Vec<String>) -> Result<Vec<V>, PersistenceError> {
+        self.view_repository.load_many(view_ids).await
+    }
+
     pub(crate) async fn apply_events(
         &self,
         view_id: &str,
@@ -70,21 +80,21 @@ where
         Ok(())
     }
 
-    pub(crate) async fn replay_events(
-        &self,
-        view_id: &str,
-        events: &[EventEnvelope<A>],
-    ) -> Result<(), PersistenceError> {
-        todo!()
-        // let mut view: V = Default::default();
-        // for event in events {
-        //     view.update(event);
-        // }
-        // let view_context = ViewContext::new(view_id.to_string(), 0);
-        // self.view_repository.delete_view(view_id).await?;
-        // self.view_repository.update_view(view, view_context).await?;
-        // Ok(())
-    }
+    // pub(crate) async fn replay_events(
+    //     &self,
+    //     view_id: &str,
+    //     events: &[EventEnvelope<A>],
+    // ) -> Result<(), PersistenceError> {
+    //     todo!()
+    //     // let mut view: V = Default::default();
+    //     // for event in events {
+    //     //     view.update(event);
+    //     // }
+    //     // let view_context = ViewContext::new(view_id.to_string(), 0);
+    //     // self.view_repository.delete_view(view_id).await?;
+    //     // self.view_repository.update_view(view, view_context).await?;
+    //     // Ok(())
+    // }
 
     pub fn handle_error(&self, error: PersistenceError) {
         match &self.error_handler {

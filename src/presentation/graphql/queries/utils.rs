@@ -5,6 +5,7 @@ use async_graphql::types::connection::{CursorType, Edge, EmptyFields};
 use async_graphql::{Enum, Error, ErrorExtensions, InputObject};
 use async_graphql::{ObjectType, OutputType, Result, SimpleObject};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::presentation::PresentationError;
 
@@ -163,19 +164,34 @@ where
     )
 }
 
-pub fn get_from_filter(filter: &Filter, key: &str) -> Result<String, Error> {
-    if let Some(value) = opt_from_filter(filter, key) {
-        Ok(value)
-    } else {
-        Err(PresentationError::Required(format!("filter {}", key)).extend())
-    }
+pub fn get_string_from_filter(filter: &Filter, key: &str) -> Result<String, Error> {
+    get_opt_string_from_filter(filter, key)
+        .ok_or(PresentationError::Required(format!("filter {}", key)).extend())
 }
 
-pub fn opt_from_filter(filter: &Filter, key: &str) -> Option<String> {
+pub fn get_opt_string_from_filter(filter: &Filter, key: &str) -> Option<String> {
     if let Some(filter) = filter {
         filter.get(&key.to_string()).map(|v| v.clone())
     } else {
         None
+    }
+}
+
+pub fn get_opt_json_from_filter(filter: &Filter, key: &str) -> Result<Option<Value>, Error> {
+    match get_opt_string_from_filter(filter, key) {
+        None => Ok(None),
+        Some(value) => serde_json::from_str(value.as_str())
+            .map_err(|error| PresentationError::from(error).extend()),
+    }
+}
+
+pub fn get_opt_vec_from_filter(filter: &Filter, key: &str) -> Result<Option<Vec<String>>, Error> {
+    match get_opt_string_from_filter(filter, key) {
+        None => Ok(None),
+        Some(value) => match serde_json::from_str(value.as_str()) {
+            Ok(vec) => Ok(Some(vec)),
+            Err(error) => Err(PresentationError::from(error).extend()),
+        },
     }
 }
 

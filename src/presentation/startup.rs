@@ -64,13 +64,14 @@ pub async fn start_cqrs_instances(
 }
 
 pub async fn vendor_cqrs(pool: ConnectionPool) -> VendorStartup {
-    let services = VendorServices::new(Box::new(VendorApi));
+    let services = Arc::new(VendorServices::new(Box::new(VendorApi)));
 
     let simple_logging_query = SimpleLoggingQuery {};
 
     let vendor_products_repository =
         Arc::new(ViewRepository::new("vendor_product_view", pool.clone()));
-    let vendor_products_query = VendorProductsQuery::new(vendor_products_repository.clone());
+    let vendor_products_query =
+        VendorProductsQuery::new(vendor_products_repository.clone(), services.clone());
     // let mut vendor_products_query = VendorProductsQuery::new(vendor_products_repository.clone());
     // TODO add error handling
     // vendor_products_query.use_error_handler(Box::new(|error| log::error!("{}", error)));
@@ -84,7 +85,13 @@ pub async fn vendor_cqrs(pool: ConnectionPool) -> VendorStartup {
     //     VendorProductsQuery::new(vendor_products_repository.clone());
     // cloned_vendor_products_query.use_error_handler(Box::new(|error| log::error!("{}", error)));
 
-    let framework = cqrs(pool, "vendor_event", queries, services).await;
+    let framework = cqrs(
+        pool,
+        "vendor_event",
+        queries,
+        VendorServices::new(Box::new(VendorApi)),
+    )
+    .await;
     // let framework =
     //     framework.with_tracking_event_processor(TrackingEventProcessor::new(vec![Box::new(
     //         cloned_vendor_products_query,
@@ -92,7 +99,10 @@ pub async fn vendor_cqrs(pool: ConnectionPool) -> VendorStartup {
 
     (
         Arc::new(framework),
-        Arc::new(VendorProductsQuery::new(vendor_products_repository)),
+        Arc::new(VendorProductsQuery::new(
+            vendor_products_repository,
+            services.clone(),
+        )),
     )
 }
 

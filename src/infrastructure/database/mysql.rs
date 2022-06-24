@@ -1,8 +1,13 @@
-use cqrs_es::persist::PersistedEventStore;
-use cqrs_es::{Aggregate, CqrsFramework, Query};
-use mysql_es::MysqlViewRepository;
-use mysql_es::{MysqlEventRepository, SqlQueryFactory};
-use sqlx::mysql::MySqlPoolOptions;
+use async_trait::async_trait;
+use cqrs_es::persist::{PersistedEventStore, PersistenceError};
+use cqrs_es::{Aggregate, CqrsFramework, Query, View};
+use mysql_es::{MysqlAggregateError, MysqlEventRepository, MysqlViewRepository, SqlQueryFactory};
+use serde::de::DeserializeOwned;
+use sqlx::mysql::{MySqlPoolOptions, MySqlRow};
+use sqlx::query_builder::QueryBuilder;
+use sqlx::{MySql, Row};
+
+use crate::commons::ExtendedViewRepository;
 
 pub type ViewRepository<V, A> = MysqlViewRepository<V, A>;
 
@@ -72,13 +77,16 @@ pub async fn start_connection_pool(database_uri: String, max_connections: u32) -
         .expect("unable to connect to database")
 }
 
-pub async fn get_random_event_aggregate_id(pool: &ConnectionPool, aggregate_type: &str) -> crate::presentation::Result<String> {
-  let sql = format!(
-      "SELECT GET_RANDOM_{}_EVENT_AGGREGATE_ID(100000000000, 1000000000000-1)",
-      aggregate_type
-  );
-  let row: (u64,) = sqlx::query_as(sql.as_str()).fetch_one(&pool).await?;
-  Ok(row.0.to_string())
+pub async fn get_random_event_aggregate_id(
+    pool: &ConnectionPool,
+    aggregate_type: &str,
+) -> crate::presentation::Result<String> {
+    let sql = format!(
+        "SELECT GET_RANDOM_{}_EVENT_AGGREGATE_ID(100000000000, 1000000000000-1)",
+        aggregate_type
+    );
+    let row: (u64,) = sqlx::query_as(sql.as_str()).fetch_one(pool).await?;
+    Ok(row.0.to_string())
 }
 
 // test upcast
@@ -110,3 +118,46 @@ pub async fn get_random_event_aggregate_id(pool: &ConnectionPool, aggregate_type
 //         )),
 //     ]
 // }
+
+#[async_trait]
+impl<V, A> ExtendedViewRepository<V, A> for MysqlViewRepository<V, A>
+where
+    V: View<A>,
+    A: Aggregate,
+{
+    async fn load_all(&self) -> Result<Vec<V>, PersistenceError> {
+        let sql = format!("SELECT version, payload FROM {}", self.view_name);
+        let rows: Vec<MySqlRow> = sqlx::query(sql.as_str())
+            .fetch_all(&self.pool)
+            .await
+            .map_err(MysqlAggregateError::from)?;
+        format_rows(rows)
+    }
+
+    async fn load_many(&self, view_ids: Vec<String>) -> Result<Vec<V>, PersistenceError> {
+        let sql = format!(
+            "SELECT version, payload FROM {} WHERE view_id IN (",
+            self.view_name
+        );
+        let mut query_builder: QueryBuilder<MySql> = QueryBuilder::new(sql.as_str());
+        let mut separated = query_builder.separated(",");
+        for view_id in view_ids {
+            separated.push_bind(view_id);
+        }
+        query_builder.push(")");
+        let rows = query_builder
+            .build()
+            .fetch_all(&self.pool)
+            .await
+            .map_err(MysqlAggregateError::from)?;
+        format_rows(rows)
+    }
+}
+
+fn format_rows<V: DeserializeOwned>(rows: Vec<MySqlRow>) -> Result<Vec<V>, PersistenceError> {
+    let mut views: Vec<V> = vec![];
+    for row in rows {
+        views.push(serde_json::from_value(row.get("payload"))?);
+    }
+    Ok(views)
+}

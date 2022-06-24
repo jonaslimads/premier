@@ -2,11 +2,18 @@ use rand::Rng;
 use std::fs::File;
 use std::path::Path;
 
-use cqrs_es::persist::PersistedEventStore;
-use cqrs_es::{Aggregate, CqrsFramework, Query};
-use sqlite_es::SqliteViewRepository;
-use sqlite_es::{SqlQueryFactory, SqliteEventRepository};
-use sqlx::sqlite::SqlitePoolOptions;
+use async_trait::async_trait;
+use cqrs_es::persist::{PersistedEventStore, PersistenceError};
+use cqrs_es::{Aggregate, CqrsFramework, Query, View};
+use serde::de::DeserializeOwned;
+use sqlite_es::{
+    SqlQueryFactory, SqliteAggregateError, SqliteEventRepository, SqliteViewRepository,
+};
+use sqlx::query_builder::QueryBuilder;
+use sqlx::sqlite::{SqlitePoolOptions, SqliteRow};
+use sqlx::{Row, Sqlite};
+
+use crate::commons::ExtendedViewRepository;
 
 pub type ViewRepository<V, A> = SqliteViewRepository<V, A>;
 
@@ -123,4 +130,47 @@ pub async fn get_random_event_aggregate_id(
     let mut rng = rand::thread_rng();
     let id: u64 = rng.gen_range(100000000000..1000000000000);
     Ok(id.to_string())
+}
+
+#[async_trait]
+impl<V, A> ExtendedViewRepository<V, A> for SqliteViewRepository<V, A>
+where
+    V: View<A>,
+    A: Aggregate,
+{
+    async fn load_all(&self) -> Result<Vec<V>, PersistenceError> {
+        let sql = format!("SELECT version, payload FROM {}", self.view_name);
+        let rows: Vec<SqliteRow> = sqlx::query(sql.as_str())
+            .fetch_all(&self.pool)
+            .await
+            .map_err(SqliteAggregateError::from)?;
+        format_rows(rows)
+    }
+
+    async fn load_many(&self, view_ids: Vec<String>) -> Result<Vec<V>, PersistenceError> {
+        let sql = format!(
+            "SELECT version, payload FROM {} WHERE view_id IN (",
+            self.view_name
+        );
+        let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(sql.as_str());
+        let mut separated = query_builder.separated(",");
+        for view_id in view_ids {
+            separated.push_bind(view_id);
+        }
+        query_builder.push(")");
+        let rows = query_builder
+            .build()
+            .fetch_all(&self.pool)
+            .await
+            .map_err(SqliteAggregateError::from)?;
+        format_rows(rows)
+    }
+}
+
+fn format_rows<V: DeserializeOwned>(rows: Vec<SqliteRow>) -> Result<Vec<V>, PersistenceError> {
+    let mut views: Vec<V> = vec![];
+    for row in rows {
+        views.push(serde_json::from_value(row.get("payload"))?);
+    }
+    Ok(views)
 }

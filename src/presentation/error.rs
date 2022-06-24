@@ -1,6 +1,7 @@
 use std::string::FromUtf8Error;
 use std::sync::Arc;
 
+use cqrs_es::persist::PersistenceError;
 use cqrs_es::AggregateError;
 use thiserror::Error;
 
@@ -52,6 +53,9 @@ pub enum PresentationError {
 
     #[error("Release {0}")]
     Release(String),
+
+    #[error("Event store error {0}")]
+    EventStore(Arc<PersistenceError>),
 }
 
 impl From<AggregateError<OrderError>> for PresentationError {
@@ -100,6 +104,13 @@ impl From<sqlx::Error> for PresentationError {
     #[inline]
     fn from(error: sqlx::Error) -> Self {
         Self::Sql(Arc::new(error))
+    }
+}
+
+impl From<PersistenceError> for PresentationError {
+    #[inline]
+    fn from(error: PersistenceError) -> Self {
+        Self::EventStore(Arc::new(error))
     }
 }
 

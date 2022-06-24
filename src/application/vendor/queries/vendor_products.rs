@@ -1,9 +1,11 @@
 use async_graphql::SimpleObject;
-use cqrs_es::persist::GenericQuery;
-use cqrs_es::{EventEnvelope, View};
+use async_trait::async_trait;
+use cqrs_es::{EventEnvelope, Query, View};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::application::vendor::services::VendorServices;
+use crate::application::BaseQuery;
 use crate::commons::{HasId, HasItems, HasNestedGroups, HasNestedGroupsWithItems};
 use crate::domain::vendor::events::VendorEvent;
 use crate::domain::vendor::Vendor;
@@ -80,8 +82,12 @@ impl View<Vendor> for VendorProductsView {
     }
 }
 
-pub type VendorProductsQuery =
-    GenericQuery<ViewRepository<VendorProductsView, Vendor>, VendorProductsView, Vendor>;
+pub type VendorProductsQuery = BaseQuery<
+    ViewRepository<VendorProductsView, Vendor>,
+    VendorProductsView,
+    Vendor,
+    VendorServices,
+>;
 
 impl VendorProductsViewPage {
     pub fn new(id: String, name: String, slug: String, order: u16) -> Self {
@@ -143,4 +149,14 @@ impl HasNestedGroups<VendorProductsViewPage> for VendorProductsViewPage {
 impl<'a> HasNestedGroupsWithItems<'a, VendorProductsViewPage, VendorProductsViewProduct>
     for VendorProductsView
 {
+}
+
+#[async_trait]
+impl Query<Vendor> for VendorProductsQuery {
+    async fn dispatch(&self, view_id: &str, events: &[EventEnvelope<Vendor>]) {
+        match self.apply_events(view_id, events).await {
+            Ok(_) => {}
+            Err(err) => self.handle_error(err),
+        };
+    }
 }

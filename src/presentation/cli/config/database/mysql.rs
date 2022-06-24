@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use crate::infrastructure::ConnectionPool;
-use crate::presentation::{PresentationError, Result};
+use crate::presentation::Result;
 
 const DEFAULT_MYSQL_MAX_CONNECTIONS: u32 = 5;
 
@@ -23,7 +23,7 @@ impl MySqlConfig {
         }
         #[cfg(not(feature = "mysql"))]
         {
-            Err(PresentationError::Release(
+            Err(crate::presentation::PresentationError::Release(
                 "does not support MySQL. Try another release.".to_string(),
             ))
         }

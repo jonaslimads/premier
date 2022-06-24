@@ -115,11 +115,11 @@ where
     // This is really bad coded.
     // Ideally it should have a recursive function where we try to get from top items and nested groups' items
     // But we keep hitting "cannot borrow `*group` as mutable more than once at a time"
-    fn mutate_item(&'a mut self, item_id: String, apply: &'a mut dyn FnMut(&mut I)) -> bool {
+    fn mutate_item(&'a mut self, item_id: String, mutation: &'a mut dyn FnMut(&mut I)) -> bool {
         for item in self.get_items_mut() {
             log::info!("Top level: {:?} {:?}", item_id, item.id());
             if item.id() == item_id.clone() {
-                (apply)(item);
+                (mutation)(item);
                 return true;
             }
         }
@@ -127,7 +127,7 @@ where
             for item in group.get_items_mut() {
                 log::info!("Level 1: {:?} {:?}", item_id, item.id());
                 if item.id() == item_id.clone() {
-                    (apply)(item);
+                    (mutation)(item);
                     return true;
                 }
             }
@@ -135,7 +135,7 @@ where
                 for item in nested1.get_items_mut() {
                     log::info!("Level 2: {:?} {:?}", item_id, item.id());
                     if item.id() == item_id.clone() {
-                        (apply)(item);
+                        (mutation)(item);
                         return true;
                     }
                 }
@@ -143,7 +143,7 @@ where
                     for item in nested2.get_items_mut() {
                         log::info!("Level 3: {:?} {:?}", item_id, item.id());
                         if item.id() == item_id.clone() {
-                            (apply)(item);
+                            (mutation)(item);
                             return true;
                         }
                     }
@@ -240,6 +240,7 @@ fn get_position_with_comparator<T>(
     position
 }
 
+#[cfg(test)]
 mod tests {
 
     use super::{HasId, HasItems, HasNestedGroups, HasNestedGroupsWithItems, VecComparator};
@@ -392,7 +393,6 @@ mod tests {
     }
 
     impl Org {
-        #[cfg(test)]
         fn with_board(board_names: Vec<&str>) -> Self {
             Self::new(
                 board_names.iter().map(|name| Member::new(name)).collect(),
@@ -400,19 +400,16 @@ mod tests {
             )
         }
 
-        #[cfg(test)]
         fn with_teams(teams: Vec<Team>) -> Self {
             Self::new(vec![], teams)
         }
 
-        #[cfg(test)]
         fn new(board: Vec<Member>, teams: Vec<Team>) -> Self {
             Self { board, teams }
         }
     }
 
     impl Member {
-        #[cfg(test)]
         fn new(name: &str) -> Self {
             Self {
                 name: name.to_string(),
@@ -421,22 +418,18 @@ mod tests {
     }
 
     impl Team {
-        #[cfg(test)]
         fn with_name(name: &str) -> Self {
             Self::with_sub_teams(name, vec![])
         }
 
-        #[cfg(test)]
         fn with_sub_teams(name: &str, sub_teams: Vec<Team>) -> Self {
             Self::new(name, vec![], sub_teams)
         }
 
-        #[cfg(test)]
         fn with_members(name: &str, members: Vec<Member>) -> Self {
             Self::new(name, members, vec![])
         }
 
-        #[cfg(test)]
         fn new(name: &str, members: Vec<Member>, sub_teams: Vec<Team>) -> Self {
             Self {
                 name: name.to_string(),

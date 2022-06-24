@@ -24,7 +24,7 @@ impl SqliteConfig {
         }
         #[cfg(not(feature = "sqlite"))]
         {
-            Err(PresentationError::Release(
+            Err(crate::presentation::PresentationError::Release(
                 "does not support SQLite. Try another release.".to_string(),
             ))
         }
