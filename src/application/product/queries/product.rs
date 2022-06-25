@@ -11,7 +11,7 @@ use crate::infrastructure::ViewRepository;
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
 pub struct ProductView {
     pub id: String,
-    pub vendor: ProductViewVendor,
+    pub store: ProductViewStore,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub page: Option<ProductViewPage>,
     pub name: String,
@@ -26,11 +26,11 @@ pub struct ProductView {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
-pub struct ProductViewVendor {
+pub struct ProductViewStore {
     id: String,
 }
 
-impl ProductViewVendor {
+impl ProductViewStore {
     pub fn new(id: String) -> Self {
         Self { id }
     }
@@ -64,7 +64,7 @@ impl View<Product> for ProductView {
             ProductEvent::ProductAdded {
                 id,
                 platform_id,
-                vendor_id,
+                store_id,
                 category_id: _,
                 page_id,
                 name,
@@ -75,7 +75,7 @@ impl View<Product> for ProductView {
                 attributes,
             } => {
                 self.id = id.clone();
-                self.vendor = ProductViewVendor::new(vendor_id.clone());
+                self.store = ProductViewStore::new(store_id.clone());
                 self.page = page_id.clone().map(|id| ProductViewPage::new(id));
                 self.name = name.clone();
                 self.description = description.clone();
@@ -93,7 +93,7 @@ impl View<Product> for ProductView {
                 self.is_archived = false;
             }
             ProductEvent::ProductPaged {
-                vendor_id: _,
+                store_id: _,
                 page_id,
             } => {
                 self.page = Some(ProductViewPage::new(page_id.clone()));

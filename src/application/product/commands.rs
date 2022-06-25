@@ -29,7 +29,7 @@ pub struct AddProductCommand {
     pub id: String,
     #[graphql(default_with = "default_platform_id()")]
     pub platform_id: String,
-    pub vendor_id: String,
+    pub store_id: String,
     pub category_id: Option<String>,
     pub page_id: Option<String>,
     pub name: String,
@@ -61,7 +61,7 @@ pub struct CategorizeProductCommand {
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
 pub struct PageProductCommand {
     pub id: String,
-    pub vendor_id: String,
+    pub store_id: String,
     pub page_id: String,
 }
 

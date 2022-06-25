@@ -49,7 +49,7 @@ CREATE TABLE `product_event` (
 --     CONSTRAINT FOREIGN KEY (aggregate_id, sequence) REFERENCES product_event (aggregate_id, sequence)
 -- );
 
-CREATE TABLE `vendor_event` (
+CREATE TABLE `store_event` (
     aggregate_id BIGINT UNSIGNED NOT NULL,
     sequence BIGINT CHECK (sequence >= 0),
     event_type TEXT NOT NULL,
@@ -60,18 +60,18 @@ CREATE TABLE `vendor_event` (
     KEY (aggregate_id)
 );
 
--- CREATE TABLE `vendor_event_pending_replay` (
+-- CREATE TABLE `store_event_pending_replay` (
 --     aggregate_id BIGINT UNSIGNED NOT NULL,
 --     sequence BIGINT CHECK (sequence >= 0),
 --     CONSTRAINT PRIMARY KEY (aggregate_id),
---     CONSTRAINT FOREIGN KEY (aggregate_id, sequence) REFERENCES vendor_event (aggregate_id, sequence)
+--     CONSTRAINT FOREIGN KEY (aggregate_id, sequence) REFERENCES store_event (aggregate_id, sequence)
 -- );
 
-CREATE TABLE `vendor_product` (
-    vendor_id BIGINT UNSIGNED NOT NULL,
+CREATE TABLE `store_product` (
+    store_id BIGINT UNSIGNED NOT NULL,
     product_id BIGINT UNSIGNED NOT NULL,
-    CONSTRAINT PRIMARY KEY (vendor_id, product_id),
-    CONSTRAINT FOREIGN KEY (vendor_id) REFERENCES vendor_event (aggregate_id),
+    CONSTRAINT PRIMARY KEY (store_id, product_id),
+    CONSTRAINT FOREIGN KEY (store_id) REFERENCES store_event (aggregate_id),
     CONSTRAINT FOREIGN KEY (product_id) REFERENCES product_event (aggregate_id)
 );
 
@@ -209,7 +209,7 @@ BEGIN
 
     r: REPEAT
         SET rnd = FLOOR(range_start + RAND() * (range_end - range_start));
-        UNTIL NOT EXISTS( SELECT 1 FROM `vendor_event` WHERE aggregate_id = rnd )
+        UNTIL NOT EXISTS( SELECT 1 FROM `store_event` WHERE aggregate_id = rnd )
     END REPEAT r;
 
     RETURN rnd;
@@ -273,7 +273,7 @@ END//
 
 CREATE TRIGGER `UPDATE_GLOBAL_SEQUENCE_ON_VENDOR_EVENT`
 BEFORE INSERT
-ON `vendor_event` FOR EACH ROW
+ON `store_event` FOR EACH ROW
 BEGIN
     DECLARE global_sequence BIGINT UNSIGNED;
     
@@ -304,7 +304,7 @@ CREATE TABLE platform_view (
 --     CONSTRAINT PRIMARY KEY (view_id)
 -- );
 
-CREATE TABLE vendor_product_view (
+CREATE TABLE store_product_view (
     view_id VARCHAR(255) NOT NULL,
     version BIGINT CHECK (version >= 0),
     payload JSON NOT NULL,

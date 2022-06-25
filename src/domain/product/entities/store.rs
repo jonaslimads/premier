@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
-pub struct Vendor {
+pub struct Store {
     id: String,
 }
 
-impl Vendor {
+impl Store {
     pub fn new(id: String) -> Self {
         Self { id }
     }

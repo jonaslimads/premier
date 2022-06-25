@@ -31,7 +31,7 @@ pub struct UnarchiveOrderCommand {
 pub struct AddOrderProductCommand {
     pub id: String,
     pub product_id: String,
-    pub vendor_id: String,
+    pub store_id: String,
     pub name: String,
     pub slug: String,
     pub currency: String,

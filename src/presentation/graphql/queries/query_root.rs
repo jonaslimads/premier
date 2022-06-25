@@ -6,8 +6,8 @@ use crate::application::platform::queries::platform::{
     PlatformQuery, PlatformView, PlatformViewCategory,
 };
 use crate::application::product::queries::product::{ProductQuery, ProductView, ProductViewReview};
-use crate::application::vendor::queries::vendor_products::{
-    VendorProductsQuery, VendorProductsView, VendorProductsViewPage, VendorProductsViewProduct,
+use crate::application::store::queries::store_products::{
+    StoreProductsQuery, StoreProductsView, StoreProductsViewPage, StoreProductsViewProduct,
 };
 use crate::commons::{HasNestedGroups, HasNestedGroupsWithItems};
 use crate::presentation::graphql::queries::utils::{
@@ -64,7 +64,7 @@ impl QueryRoot {
         }
     }
 
-    async fn vendors(
+    async fn stores(
         &self,
         context: &Context<'_>,
         filter: Filter,
@@ -73,26 +73,20 @@ impl QueryRoot {
         before: Option<String>,
         first: Option<i32>,
         last: Option<i32>,
-    ) -> Result<Connection<VendorProductsView>> {
-        let query = query::<VendorProductsQuery>(context);
-        let vendors = match get_opt_vec_from_filter(&filter, "vendorIds")? {
-            Some(vendor_ids) => query.load_many(vendor_ids).await,
+    ) -> Result<Connection<StoreProductsView>> {
+        let query = query::<StoreProductsQuery>(context);
+        let stores = match get_opt_vec_from_filter(&filter, "storeIds")? {
+            Some(store_ids) => query.load_many(store_ids).await,
             None => query.load_all().await,
         }
         .map_err(|error| PresentationError::from(error).extend())?;
-        let mut vendors = Some(vendors);
-        sort!(vendors, sort, name);
-        query_vec(vendors, after, before, first, last).await
+        let mut stores = Some(stores);
+        sort!(stores, sort, name);
+        query_vec(stores, after, before, first, last).await
     }
 
-    async fn vendor(
-        &self,
-        context: &Context<'_>,
-        id: String,
-    ) -> Result<Option<VendorProductsView>> {
-        Ok(query::<VendorProductsQuery>(context)
-            .load(id.as_str())
-            .await)
+    async fn store(&self, context: &Context<'_>, id: String) -> Result<Option<StoreProductsView>> {
+        Ok(query::<StoreProductsQuery>(context).load(id.as_str()).await)
     }
 
     async fn pages(
@@ -104,11 +98,11 @@ impl QueryRoot {
         before: Option<String>,
         first: Option<i32>,
         last: Option<i32>,
-    ) -> Result<Connection<VendorProductsViewPage>> {
-        let vendor_id = get_string_from_filter(&filter, "vendorId")?;
-        let query = context.data_unchecked::<Arc<VendorProductsQuery>>();
-        let vendor = query.load(vendor_id.as_str()).await.clone();
-        let mut pages = vendor.map(|v| v.pages);
+    ) -> Result<Connection<StoreProductsViewPage>> {
+        let store_id = get_string_from_filter(&filter, "storeId")?;
+        let query = context.data_unchecked::<Arc<StoreProductsQuery>>();
+        let store = query.load(store_id.as_str()).await.clone();
+        let mut pages = store.map(|v| v.pages);
         sort!(pages, sort, name);
         query_vec(pages, after, before, first, last).await
     }
@@ -122,25 +116,25 @@ impl QueryRoot {
         before: Option<String>,
         first: Option<i32>,
         last: Option<i32>,
-    ) -> Result<Connection<VendorProductsViewProduct, ProductAdditionalFields>> {
-        let vendor_id = get_string_from_filter(&filter, "vendorId")?;
+    ) -> Result<Connection<StoreProductsViewProduct, ProductAdditionalFields>> {
+        let store_id = get_string_from_filter(&filter, "storeId")?;
         let page_id = get_opt_string_from_filter(&filter, "pageId");
-        let query = context.data_unchecked::<Arc<VendorProductsQuery>>();
-        let vendor = query.load(vendor_id.as_str()).await.clone();
-        let mut vendor = match vendor {
-            Some(vendor) => vendor,
+        let query = context.data_unchecked::<Arc<StoreProductsQuery>>();
+        let store = query.load(store_id.as_str()).await.clone();
+        let mut store = match store {
+            Some(store) => store,
             None => return Ok(empty_connection()),
         };
 
         let (mut products, page_id) = if let Some(page_id) = page_id {
-            let mut pages = vendor.pages;
-            let page = match VendorProductsView::get_group_mut(&mut pages, page_id.clone()) {
+            let mut pages = store.pages;
+            let page = match StoreProductsView::get_group_mut(&mut pages, page_id.clone()) {
                 Some(page) => page,
                 None => return Ok(empty_connection()),
             };
             (Some(page.products.clone()), page_id.clone())
         } else {
-            (Some(vendor.get_all_items()), "".to_string())
+            (Some(store.get_all_items()), "".to_string())
         };
 
         sort!(products, sort, id, name);
@@ -178,15 +172,15 @@ impl QueryRoot {
         context: &Context<'_>,
         id: String,
         filter: Filter,
-    ) -> Result<Option<VendorProductsViewPage>> {
-        let vendor_id = get_string_from_filter(&filter, "vendorId")?;
-        let query = context.data_unchecked::<Arc<VendorProductsQuery>>();
-        let vendor = query.load(vendor_id.as_str()).await.clone();
-        let mut pages = match vendor.map(|v| v.pages) {
+    ) -> Result<Option<StoreProductsViewPage>> {
+        let store_id = get_string_from_filter(&filter, "storeId")?;
+        let query = context.data_unchecked::<Arc<StoreProductsQuery>>();
+        let store = query.load(store_id.as_str()).await.clone();
+        let mut pages = match store.map(|v| v.pages) {
             Some(pages) => pages,
             None => return Ok(None),
         };
-        match VendorProductsView::get_group_mut(&mut pages, id) {
+        match StoreProductsView::get_group_mut(&mut pages, id) {
             Some(page) => Ok(Some(page.clone())),
             None => return Ok(None),
         }

@@ -19,27 +19,25 @@ use crate::application::product::commands::{
     UnarchiveProductCommand, UpdateProductAttachmentsCommand, UpdateProductAttributesCommand,
     UpdateProductDescriptionCommand, UpdateProductNameCommand, UpdateProductSlugCommand,
 };
-use crate::application::vendor::commands::{
-    AddPageCommand, AddVendorCommand, ArchiveVendorCommand, UnarchiveVendorCommand, VendorCommand,
+use crate::application::store::commands::{
+    AddPageCommand, AddStoreCommand, ArchiveStoreCommand, StoreCommand, UnarchiveStoreCommand,
 };
 use crate::domain::order::Order;
 use crate::domain::platform::Platform;
 use crate::domain::product::Product;
-use crate::domain::vendor::Vendor;
+use crate::domain::store::Store;
 use crate::infrastructure::{auth, Cqrs};
 use crate::presentation::{PresentationError, PresentationService};
 
 type CqrsOrder = Arc<Cqrs<Order>>;
 type CqrsPlatform = Arc<Cqrs<Platform>>;
 type CqrsProduct = Arc<Cqrs<Product>>;
-type CqrsVendor = Arc<Cqrs<Vendor>>;
+type CqrsStore = Arc<Cqrs<Store>>;
 
 macro_rules! mutation_base {
     ($context:expr, $command:expr, $aggregate_type:ident, $command_type:ident, $parse_session_method:ident) => {{
         let session_intent = $context.data_unchecked::<auth::SessionIntent>().clone();
-        let service = $context
-            .data_unchecked::<Arc<PresentationService>>()
-            .clone();
+        let service = $context.data_unchecked::<Arc<PresentationService>>();
         let session = service
             .$parse_session_method(session_intent)
             .await
@@ -147,8 +145,8 @@ mutation_root!(
     product => AllocateProductStockVariant,
     product => ReallocateProductStockVariant,
     product => DeallocateProductStockVariant,
-    vendor => AddVendor,
-    vendor => ArchiveVendor,
-    vendor => UnarchiveVendor,
-    vendor => AddPage
+    store => AddStore,
+    store => ArchiveStore,
+    store => UnarchiveStore,
+    store => AddPage
 );

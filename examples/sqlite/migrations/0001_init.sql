@@ -37,7 +37,7 @@ CREATE TABLE `product_event` (
 
 CREATE INDEX product_event_aggregate_idx ON product_event (aggregate_id);
 
-CREATE TABLE `vendor_event` (
+CREATE TABLE `store_event` (
     aggregate_id varchar(255) NOT NULL,
     sequence bigint CHECK (sequence >= 0) NOT NULL,
     event_type text NOT NULL,
@@ -47,14 +47,14 @@ CREATE TABLE `vendor_event` (
     PRIMARY KEY (aggregate_id, sequence)
 );
 
-CREATE INDEX vendor_event_aggregate_idx ON vendor_event (aggregate_id);
+CREATE INDEX store_event_aggregate_idx ON store_event (aggregate_id);
 
-CREATE TABLE `vendor_product` (
-    vendor_id varchar(255) NOT NULL,
+CREATE TABLE `store_product` (
+    store_id varchar(255) NOT NULL,
     product_id varchar(255) NOT NULL,
-    -- FOREIGN KEY (vendor_id) REFERENCES vendor_event (aggregate_id),
+    -- FOREIGN KEY (store_id) REFERENCES store_event (aggregate_id),
     -- FOREIGN KEY (product_id) REFERENCES product_event (aggregate_id),
-    PRIMARY KEY (vendor_id, product_id)
+    PRIMARY KEY (store_id, product_id)
 );
 
 -- -----------------------------------------
@@ -67,7 +67,7 @@ CREATE TABLE platform_view (
     PRIMARY KEY (view_id)
 );
 
-CREATE TABLE vendor_product_view (
+CREATE TABLE store_product_view (
     view_id VARCHAR(255) NOT NULL,
     version BIGINT CHECK (version >= 0),
     payload JSON NOT NULL,

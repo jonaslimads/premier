@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::commons::{HasId, HasItems, HasNestedGroups};
-use crate::domain::vendor::entities::Product;
+use crate::domain::store::entities::Product;
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Page {

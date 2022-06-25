@@ -16,7 +16,7 @@ event_enum! {
         OrderUnarchived {},
         OrderProductAdded {
             product_id: String,
-            vendor_id: String,
+            store_id: String,
             name: String,
             slug: String,
             currency: String,

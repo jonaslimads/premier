@@ -5,7 +5,7 @@ use cqrs_es::Aggregate;
 
 use crate::application::product::commands::ProductCommand;
 use crate::application::product::services::ProductServices;
-use crate::domain::product::entities::{Category, Page, Product, Vendor};
+use crate::domain::product::entities::{Category, Page, Product, Store};
 use crate::domain::product::{ProductError, ProductEvent};
 
 #[async_trait]
@@ -32,7 +32,7 @@ impl Aggregate for Product {
                 id: command.id,
                 platform_id: command.platform_id,
                 category_id: command.category_id,
-                vendor_id: command.vendor_id,
+                store_id: command.store_id,
                 page_id: command.page_id,
                 name: command.name,
                 description: command.description,
@@ -48,7 +48,7 @@ impl Aggregate for Product {
                 category_id: command.category_id,
             }],
             ProductCommand::PageProduct(command) => vec![ProductEvent::ProductPaged {
-                vendor_id: command.vendor_id,
+                store_id: command.store_id,
                 page_id: command.page_id,
             }],
             ProductCommand::UpdateProductName(command) => {
@@ -164,7 +164,7 @@ impl Aggregate for Product {
             ProductEvent::ProductAdded {
                 id,
                 platform_id: _,
-                vendor_id,
+                store_id,
                 category_id,
                 page_id,
                 name,
@@ -175,7 +175,7 @@ impl Aggregate for Product {
                 attributes,
             } => {
                 self.id = id;
-                self.vendor = Vendor::new(vendor_id);
+                self.store = Store::new(store_id);
                 self.category = category_id.map(|id| Category::new(id));
                 self.page = page_id.map(|id| Page::new(id));
                 self.name = name;
@@ -193,7 +193,7 @@ impl Aggregate for Product {
                 category_id,
             } => self.category = Some(Category::new(category_id)),
             ProductEvent::ProductPaged {
-                vendor_id: _,
+                store_id: _,
                 page_id,
             } => self.page = Some(Page::new(page_id)),
             ProductEvent::ProductNameUpdated { name } => self.name = name,
@@ -280,7 +280,7 @@ mod aggregate_tests {
     const VARIANT_ID: &str = "variant_id";
     const WAREHOUSE_ID: &str = "warehouse_id";
     const PLATFORM_ID: &str = "platform_id";
-    const VENDOR_ID: &str = "vendor_id";
+    const STORE_ID: &str = "store_id";
     const ORDER_ID: &str = "order_id";
     const CURRENCY: &str = "USD";
     const SKU: &str = "SKU";
@@ -428,7 +428,7 @@ mod aggregate_tests {
         ProductEvent::ProductAdded {
             id: PRODUCT_ID.to_string(),
             platform_id: PLATFORM_ID.to_string(),
-            vendor_id: VENDOR_ID.to_string(),
+            store_id: STORE_ID.to_string(),
             category_id: None,
             page_id: None,
             name: "".to_string(),

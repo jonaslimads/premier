@@ -10,10 +10,10 @@ use warp::{http::Response as HttpResponse, Filter, Rejection, Reply};
 pub mod mutation_root;
 pub mod queries;
 
-pub use crate::domain::{order::Order, product::Product, vendor::Vendor};
+pub use crate::domain::{order::Order, product::Product, store::Store};
 pub use crate::infrastructure::{auth::SessionIntent, ConnectionPool, Cqrs};
 use crate::presentation::cli::config::graphql::GraphqlConfig;
-use crate::presentation::startup::{OrderStartup, PlatformStartup, ProductStartup, VendorStartup};
+use crate::presentation::startup::{OrderStartup, PlatformStartup, ProductStartup, StoreStartup};
 use crate::presentation::PresentationService;
 pub use mutation_root::MutationRoot;
 pub use queries::query_root::QueryRoot;
@@ -24,7 +24,7 @@ pub async fn start_graphql_server(
     (order_cqrs,): OrderStartup,
     (platform_cqrs, platform_query): PlatformStartup,
     (product_cqrs, product_query): ProductStartup,
-    (vendor_cqrs, vendor_product_query): VendorStartup,
+    (store_cqrs, store_product_query): StoreStartup,
 ) {
     let schema = Schema::build(QueryRoot, MutationRoot, EmptySubscription)
         .data(presentation_service)
@@ -33,8 +33,8 @@ pub async fn start_graphql_server(
         .data(platform_query)
         .data(product_cqrs)
         .data(product_query)
-        .data(vendor_cqrs)
-        .data(vendor_product_query)
+        .data(store_cqrs)
+        .data(store_product_query)
         .finish();
 
     let schema_sdl = schema.sdl();

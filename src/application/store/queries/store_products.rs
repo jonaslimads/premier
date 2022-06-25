@@ -4,25 +4,25 @@ use cqrs_es::{EventEnvelope, Query, View};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::application::vendor::services::VendorServices;
+use crate::application::store::services::StoreServices;
 use crate::application::BaseQuery;
 use crate::commons::{HasId, HasItems, HasNestedGroups, HasNestedGroupsWithItems};
-use crate::domain::vendor::events::VendorEvent;
-use crate::domain::vendor::Vendor;
+use crate::domain::store::events::StoreEvent;
+use crate::domain::store::Store;
 use crate::infrastructure::ViewRepository;
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
-pub struct VendorProductsView {
+pub struct StoreProductsView {
     pub id: String,
     pub name: String,
     pub attributes: Value,
     pub is_archived: bool,
-    pub pages: Vec<VendorProductsViewPage>,
-    pub unpaged_products: Vec<VendorProductsViewProduct>,
+    pub pages: Vec<StoreProductsViewPage>,
+    pub unpaged_products: Vec<StoreProductsViewProduct>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
-pub struct VendorProductsViewPage {
+pub struct StoreProductsViewPage {
     pub id: String,
     pub name: String,
     pub slug: String,
@@ -30,12 +30,12 @@ pub struct VendorProductsViewPage {
     pub order: u16,
     #[graphql(skip)]
     pub is_archived: bool,
-    pub children: Vec<VendorProductsViewPage>,
-    pub products: Vec<VendorProductsViewProduct>,
+    pub children: Vec<StoreProductsViewPage>,
+    pub products: Vec<StoreProductsViewProduct>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
-pub struct VendorProductsViewProduct {
+pub struct StoreProductsViewProduct {
     pub id: String,
     pub name: String,
     pub slug: String,
@@ -46,10 +46,10 @@ pub struct VendorProductsViewProduct {
     pub is_archived: bool,
 }
 
-impl View<Vendor> for VendorProductsView {
-    fn update(&mut self, event: &EventEnvelope<Vendor>) {
+impl View<Store> for StoreProductsView {
+    fn update(&mut self, event: &EventEnvelope<Store>) {
         match &event.payload {
-            VendorEvent::VendorAdded {
+            StoreEvent::StoreAdded {
                 id,
                 platform_id: _,
                 name,
@@ -60,19 +60,19 @@ impl View<Vendor> for VendorProductsView {
                 self.attributes = attributes.clone();
                 self.is_archived = false;
             }
-            VendorEvent::VendorArchived {} => self.is_archived = true,
-            VendorEvent::VendorUnarchived {} => self.is_archived = false,
-            VendorEvent::PageAdded {
+            StoreEvent::StoreArchived {} => self.is_archived = true,
+            StoreEvent::StoreUnarchived {} => self.is_archived = false,
+            StoreEvent::PageAdded {
                 page_id,
                 name,
                 slug,
                 order,
                 parent_page_id,
             } => self.add_group(
-                VendorProductsViewPage::new(page_id.clone(), name.clone(), slug.clone(), *order),
+                StoreProductsViewPage::new(page_id.clone(), name.clone(), slug.clone(), *order),
                 parent_page_id.clone(),
             ),
-            VendorEvent::ProductPaged {
+            StoreEvent::ProductPaged {
                 page_id,
                 product_id,
             } => {
@@ -82,14 +82,14 @@ impl View<Vendor> for VendorProductsView {
     }
 }
 
-pub type VendorProductsQuery = BaseQuery<
-    ViewRepository<VendorProductsView, Vendor>,
-    VendorProductsView,
-    Vendor,
-    VendorServices,
+pub type StoreProductsQuery = BaseQuery<
+    ViewRepository<StoreProductsView, Store>,
+    StoreProductsView,
+    Store,
+    StoreServices,
 >;
 
-impl VendorProductsViewPage {
+impl StoreProductsViewPage {
     pub fn new(id: String, name: String, slug: String, order: u16) -> Self {
         Self {
             id,
@@ -103,57 +103,57 @@ impl VendorProductsViewPage {
     }
 }
 
-impl HasId for VendorProductsViewPage {
+impl HasId for StoreProductsViewPage {
     fn id(&self) -> String {
         self.id.clone()
     }
 }
 
-impl HasId for VendorProductsViewProduct {
+impl HasId for StoreProductsViewProduct {
     fn id(&self) -> String {
         self.id.clone()
     }
 }
 
-impl HasItems<VendorProductsViewProduct> for VendorProductsView {
-    fn get_items_mut(&mut self) -> &mut Vec<VendorProductsViewProduct> {
+impl HasItems<StoreProductsViewProduct> for StoreProductsView {
+    fn get_items_mut(&mut self) -> &mut Vec<StoreProductsViewProduct> {
         &mut self.unpaged_products
     }
 }
 
-impl HasItems<VendorProductsViewProduct> for VendorProductsViewPage {
-    fn get_items_mut(&mut self) -> &mut Vec<VendorProductsViewProduct> {
+impl HasItems<StoreProductsViewProduct> for StoreProductsViewPage {
+    fn get_items_mut(&mut self) -> &mut Vec<StoreProductsViewProduct> {
         &mut self.products
     }
 }
 
-impl HasNestedGroups<VendorProductsViewPage> for VendorProductsView {
-    fn get_groups_mut(&mut self) -> &mut Vec<VendorProductsViewPage> {
+impl HasNestedGroups<StoreProductsViewPage> for StoreProductsView {
+    fn get_groups_mut(&mut self) -> &mut Vec<StoreProductsViewPage> {
         &mut self.pages
     }
 }
 
-impl HasNestedGroups<VendorProductsViewPage> for VendorProductsViewPage {
-    fn get_groups_mut(&mut self) -> &mut Vec<VendorProductsViewPage> {
+impl HasNestedGroups<StoreProductsViewPage> for StoreProductsViewPage {
+    fn get_groups_mut(&mut self) -> &mut Vec<StoreProductsViewPage> {
         &mut self.children
     }
 
     fn get_comparator(
-    ) -> Option<Box<dyn Fn(&VendorProductsViewPage, &VendorProductsViewPage) -> bool>> {
+    ) -> Option<Box<dyn Fn(&StoreProductsViewPage, &StoreProductsViewPage) -> bool>> {
         Some(Box::new(|new, current| {
             (new.order < current.order) || (new.order == current.order && new.name < current.name)
         }))
     }
 }
 
-impl<'a> HasNestedGroupsWithItems<'a, VendorProductsViewPage, VendorProductsViewProduct>
-    for VendorProductsView
+impl<'a> HasNestedGroupsWithItems<'a, StoreProductsViewPage, StoreProductsViewProduct>
+    for StoreProductsView
 {
 }
 
 #[async_trait]
-impl Query<Vendor> for VendorProductsQuery {
-    async fn dispatch(&self, view_id: &str, events: &[EventEnvelope<Vendor>]) {
+impl Query<Store> for StoreProductsQuery {
+    async fn dispatch(&self, view_id: &str, events: &[EventEnvelope<Store>]) {
         match self.apply_events(view_id, events).await {
             Ok(_) => {}
             Err(err) => self.handle_error(err),

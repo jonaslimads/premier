@@ -1,7 +1,7 @@
 pub mod order;
 pub mod platform;
 pub mod product;
-pub mod vendor;
+pub mod store;
 
 pub fn default_platform_id() -> String {
     "0".to_string()

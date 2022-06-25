@@ -1,8 +1,8 @@
 pub mod auth;
+mod database;
 pub mod error;
 pub mod product;
-pub mod vendor;
-mod database;
+pub mod store;
 
-pub use error::{InfrastructureError, Result};
 pub use database::*;
+pub use error::{InfrastructureError, Result};

@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::commons::{HasId, HasItems, HasNestedGroups, HasNestedGroupsWithItems};
-use crate::domain::vendor::entities::{Page, Platform, Product};
+use crate::domain::store::entities::{Page, Platform, Product};
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
-pub struct Vendor {
+pub struct Store {
     pub id: String,
     pub platform: Platform,
     pub name: String,
@@ -16,19 +16,19 @@ pub struct Vendor {
     pub unpaged_products: Vec<Product>,
 }
 
-impl HasId for Vendor {
+impl HasId for Store {
     fn id(&self) -> String {
         self.id.clone()
     }
 }
 
-impl HasItems<Product> for Vendor {
+impl HasItems<Product> for Store {
     fn get_items_mut(&mut self) -> &mut Vec<Product> {
         &mut self.unpaged_products
     }
 }
 
-impl HasNestedGroups<Page> for Vendor {
+impl HasNestedGroups<Page> for Store {
     fn get_groups_mut(&mut self) -> &mut Vec<Page> {
         &mut self.pages
     }
@@ -40,4 +40,4 @@ impl HasNestedGroups<Page> for Vendor {
     }
 }
 
-impl<'a> HasNestedGroupsWithItems<'a, Page, Product> for Vendor {}
+impl<'a> HasNestedGroupsWithItems<'a, Page, Product> for Store {}

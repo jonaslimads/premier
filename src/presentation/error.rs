@@ -8,7 +8,7 @@ use thiserror::Error;
 use crate::domain::order::error::OrderError;
 use crate::domain::platform::error::PlatformError;
 use crate::domain::product::error::ProductError;
-use crate::domain::vendor::error::VendorError;
+use crate::domain::store::error::StoreError;
 use crate::infrastructure::InfrastructureError;
 
 pub type Result<T> = std::result::Result<T, PresentationError>;
@@ -24,8 +24,8 @@ pub enum PresentationError {
     #[error("Product error: {0}")]
     Product(Arc<AggregateError<ProductError>>),
 
-    #[error("Vendor error: {0}")]
-    Vendor(Arc<AggregateError<VendorError>>),
+    #[error("Store error: {0}")]
+    Store(Arc<AggregateError<StoreError>>),
 
     #[error("Infrastructure: {0}")]
     Infrastructure(InfrastructureError),
@@ -79,10 +79,10 @@ impl From<AggregateError<ProductError>> for PresentationError {
     }
 }
 
-impl From<AggregateError<VendorError>> for PresentationError {
+impl From<AggregateError<StoreError>> for PresentationError {
     #[inline]
-    fn from(error: AggregateError<VendorError>) -> Self {
-        Self::Vendor(Arc::new(error))
+    fn from(error: AggregateError<StoreError>) -> Self {
+        Self::Store(Arc::new(error))
     }
 }
 

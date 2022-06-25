@@ -95,9 +95,9 @@ pub async fn get_random_event_aggregate_id(
 // fn get_upcasters() -> Vec<Box<dyn EventUpcaster>> {
 //     vec![
 //         Box::new(SemanticVersionEventUpcaster::new(
-//             "VendorArchived",
+//             "StoreArchived",
 //             "0.1.1",
-//             Box::new(|mut event| match event.get_mut("VendorArchived").unwrap() {
+//             Box::new(|mut event| match event.get_mut("StoreArchived").unwrap() {
 //                 Value::Object(object) => {
 //                     object.insert("test".to_string(), Value::Bool(true));
 //                     event
@@ -106,9 +106,9 @@ pub async fn get_random_event_aggregate_id(
 //             }),
 //         )),
 //         Box::new(SemanticVersionEventUpcaster::new(
-//             "VendorArchived",
+//             "StoreArchived",
 //             "0.1.2",
-//             Box::new(|mut event| match event.get_mut("VendorArchived").unwrap() {
+//             Box::new(|mut event| match event.get_mut("StoreArchived").unwrap() {
 //                 Value::Object(object) => {
 //                     object.insert("test2".to_string(), Value::Bool(false));
 //                     event

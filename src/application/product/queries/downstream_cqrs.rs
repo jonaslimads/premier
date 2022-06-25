@@ -5,33 +5,33 @@ use cqrs_es::{EventEnvelope, Query};
 
 use crate::domain::platform::Platform;
 use crate::domain::product::{Product, ProductEvent};
-use crate::domain::vendor::Vendor;
+use crate::domain::store::Store;
 use crate::infrastructure::Cqrs;
 
 use crate::application::platform::commands::{CategorizeProductCommand, PlatformCommand};
-use crate::application::vendor::commands::{PageProductCommand, VendorCommand};
+use crate::application::store::commands::{PageProductCommand, StoreCommand};
 
 pub struct DownstreamCqrs {
     platform_cqrs: Arc<Cqrs<Platform>>,
-    vendor_cqrs: Arc<Cqrs<Vendor>>,
+    store_cqrs: Arc<Cqrs<Store>>,
 }
 
 impl DownstreamCqrs {
-    pub fn new(platform_cqrs: Arc<Cqrs<Platform>>, vendor_cqrs: Arc<Cqrs<Vendor>>) -> Self {
+    pub fn new(platform_cqrs: Arc<Cqrs<Platform>>, store_cqrs: Arc<Cqrs<Store>>) -> Self {
         Self {
             platform_cqrs,
-            vendor_cqrs,
+            store_cqrs,
         }
     }
 
-    pub async fn page_product(&self, vendor_id: String, page_id: String, product_id: String) {
-        let vendor_id = vendor_id.clone();
-        let command = VendorCommand::PageProduct(PageProductCommand {
-            id: vendor_id.clone(),
+    pub async fn page_product(&self, store_id: String, page_id: String, product_id: String) {
+        let store_id = store_id.clone();
+        let command = StoreCommand::PageProduct(PageProductCommand {
+            id: store_id.clone(),
             page_id: page_id.clone(),
             product_id: product_id.to_string(),
         });
-        let _ = self.vendor_cqrs.execute(vendor_id.as_str(), command).await;
+        let _ = self.store_cqrs.execute(store_id.as_str(), command).await;
     }
 
     pub async fn categorize_product(
@@ -61,7 +61,7 @@ impl Query<Product> for DownstreamCqrs {
                 ProductEvent::ProductAdded {
                     platform_id,
                     category_id,
-                    vendor_id,
+                    store_id,
                     page_id,
                     ..
                 } => {
@@ -75,7 +75,7 @@ impl Query<Product> for DownstreamCqrs {
                     }
                     if let Some(page_id) = page_id.clone() {
                         self.page_product(
-                            vendor_id.clone(),
+                            store_id.clone(),
                             page_id.clone(),
                             aggregate_id.to_string(),
                         )
@@ -93,8 +93,8 @@ impl Query<Product> for DownstreamCqrs {
                     )
                     .await;
                 }
-                ProductEvent::ProductPaged { vendor_id, page_id } => {
-                    self.page_product(vendor_id.clone(), page_id.clone(), aggregate_id.to_string())
+                ProductEvent::ProductPaged { store_id, page_id } => {
+                    self.page_product(store_id.clone(), page_id.clone(), aggregate_id.to_string())
                         .await;
                 }
                 _ => {}

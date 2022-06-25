@@ -1,9 +1,9 @@
 mod page;
 mod platform;
 mod product;
-mod vendor;
+mod store;
 
 pub use page::Page;
 pub use platform::Platform;
 pub use product::Product;
-pub use vendor::Vendor;
+pub use store::Store;

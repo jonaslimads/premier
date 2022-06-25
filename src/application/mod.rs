@@ -3,7 +3,7 @@ pub mod error;
 pub mod order;
 pub mod platform;
 pub mod product;
-pub mod vendor;
+pub mod store;
 
 pub use base_query::BaseQuery;
 pub use error::ApplicationError;

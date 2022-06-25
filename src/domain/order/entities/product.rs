@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::domain::order::entities::{Variant, Vendor};
+use crate::domain::order::entities::{Store, Variant};
 use crate::domain::order::error::OrderError;
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Product {
     pub id: String,
-    pub vendor: Vendor,
+    pub store: Store,
     pub name: String,
     pub slug: String,
     pub currency: String,
@@ -19,7 +19,7 @@ pub struct Product {
 impl Product {
     pub fn new(
         id: String,
-        vendor_id: String,
+        store_id: String,
         name: String,
         slug: String,
         currency: String,
@@ -28,7 +28,7 @@ impl Product {
     ) -> Self {
         Self {
             id,
-            vendor: Vendor { id: vendor_id },
+            store: Store { id: store_id },
             name,
             slug,
             currency,

@@ -43,7 +43,7 @@ impl Order {
     pub fn add_product(
         &mut self,
         product_id: String,
-        vendor_id: String,
+        store_id: String,
         name: String,
         slug: String,
         currency: String,
@@ -51,7 +51,7 @@ impl Order {
         attributes: Value,
     ) {
         self.products.push(Product::new(
-            product_id, vendor_id, name, slug, currency, attachment, attributes,
+            product_id, store_id, name, slug, currency, attachment, attributes,
         ))
     }
 

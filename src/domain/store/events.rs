@@ -6,8 +6,8 @@ use crate::domain::{default_platform_id, event_enum, skip_default_platform_id};
 
 event_enum! {
     version "0.1.0",
-    enum VendorEvent {
-        VendorAdded {
+    enum StoreEvent {
+        StoreAdded {
             id: String,
             #[serde(default = "default_platform_id")]
             #[serde(skip_serializing_if = "skip_default_platform_id")]
@@ -15,8 +15,8 @@ event_enum! {
             name: String,
             attributes: Value,
         },
-        VendorArchived {},
-        VendorUnarchived {},
+        StoreArchived {},
+        StoreUnarchived {},
         PageAdded {
             page_id: String,
             name: String,

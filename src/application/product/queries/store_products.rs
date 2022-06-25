@@ -2,8 +2,8 @@ use async_trait::async_trait;
 use cqrs_es::{EventEnvelope, Query, View};
 
 use crate::application::product::services::ProductServices;
-use crate::application::vendor::queries::vendor_products::{
-    VendorProductsView, VendorProductsViewProduct,
+use crate::application::store::queries::store_products::{
+    StoreProductsView, StoreProductsViewProduct,
 };
 use crate::application::BaseQuery;
 use crate::commons::HasNestedGroupsWithItems;
@@ -11,13 +11,13 @@ use crate::domain::product::events::ProductEvent;
 use crate::domain::product::Product;
 use crate::infrastructure::ViewRepository;
 
-impl View<Product> for VendorProductsView {
+impl View<Product> for StoreProductsView {
     fn update(&mut self, event: &EventEnvelope<Product>) {
         match &event.payload {
             ProductEvent::ProductAdded {
                 id,
                 platform_id: _,
-                vendor_id: _,
+                store_id: _,
                 category_id: _,
                 page_id: _,
                 name,
@@ -26,7 +26,7 @@ impl View<Product> for VendorProductsView {
                 currency,
                 attachments,
                 attributes,
-            } => self.unpaged_products.push(VendorProductsViewProduct {
+            } => self.unpaged_products.push(StoreProductsViewProduct {
                 id: id.clone(),
                 name: name.clone(),
                 slug: slug.clone(),
@@ -61,41 +61,41 @@ impl View<Product> for VendorProductsView {
     }
 }
 
-pub type VendorProductsQueryFromProduct = BaseQuery<
-    ViewRepository<VendorProductsView, Product>,
-    VendorProductsView,
+pub type StoreProductsQueryFromProduct = BaseQuery<
+    ViewRepository<StoreProductsView, Product>,
+    StoreProductsView,
     Product,
     ProductServices,
 >;
 
 #[async_trait]
-impl Query<Product> for VendorProductsQueryFromProduct {
+impl Query<Product> for StoreProductsQueryFromProduct {
     async fn dispatch(&self, view_id: &str, events: &[EventEnvelope<Product>]) {
         for event in events {
-            if let ProductEvent::ProductAdded { vendor_id, .. } = &event.payload {
+            if let ProductEvent::ProductAdded { store_id, .. } = &event.payload {
                 self.services
                     .lookup
-                    .bind_vendor_product(vendor_id.clone(), view_id.to_string())
+                    .bind_store_product(store_id.clone(), view_id.to_string())
                     .await
                     .unwrap();
             }
         }
 
-        let vendor_id = match self
+        let store_id = match self
             .services
             .lookup
-            .get_vendor_id_by_product_id(view_id.to_string())
+            .get_store_id_by_product_id(view_id.to_string())
             .await
         {
-            Ok(vendor_id) => vendor_id,
+            Ok(store_id) => store_id,
             Err(error) => {
                 log::error!("{:?}", error);
                 return;
             }
         };
-        log::info!("Got vendor_id {}", vendor_id);
+        log::info!("Got store_id {}", store_id);
         // log::info!("{} {:?} {}", _view_id, events, secondary_id.unwrap());
-        match self.apply_events(vendor_id.as_str(), events).await {
+        match self.apply_events(store_id.as_str(), events).await {
             Ok(_) => {}
             Err(err) => self.handle_error(err),
         };

@@ -1,7 +1,7 @@
 // use async_trait::async_trait;
 
 pub struct OrderServices {
-    // pub services: Box<dyn VendorApi>,
+    // pub services: Box<dyn StoreApi>,
 }
 
 impl OrderServices {

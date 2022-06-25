@@ -39,7 +39,7 @@ impl Aggregate for Order {
                 }
                 vec![OrderEvent::OrderProductAdded {
                     product_id: command.product_id,
-                    vendor_id: command.vendor_id,
+                    store_id: command.store_id,
                     name: command.name,
                     slug: command.slug,
                     currency: command.currency,
@@ -77,14 +77,14 @@ impl Aggregate for Order {
             OrderEvent::OrderUnarchived {} => self.is_archived = false,
             OrderEvent::OrderProductAdded {
                 product_id,
-                vendor_id,
+                store_id,
                 name,
                 slug,
                 currency,
                 attachment,
                 attributes,
             } => self.add_product(
-                product_id, vendor_id, name, slug, currency, attachment, attributes,
+                product_id, store_id, name, slug, currency, attachment, attributes,
             ),
             OrderEvent::OrderProductVariantAdded {
                 product_id,
