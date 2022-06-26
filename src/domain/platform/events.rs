@@ -3,6 +3,7 @@ use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::commons::{PlanSubscriptionKind, Price};
 use crate::domain::event_enum;
 
 event_enum! {
@@ -12,6 +13,18 @@ event_enum! {
             id: String,
             name: String,
             attributes: Value,
+        },
+        PlatformUpdated {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            name: Option<String>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            attributes: Option<Value>,
+        },
+        PlanAdded {
+            name: String,
+            order: u16,
+            attributes: Value,
+            subscriptions: Vec<PlatformEventPlanAddedSubscription>,
         },
         CategoryAdded {
             category_id: String,
@@ -25,11 +38,12 @@ event_enum! {
             category_id: String,
             product_id: String,
         },
-        PlatformNameUpdated {
-            name: String,
-        },
-        PlatformAttributesUpdated {
-            attributes: Value,
-        },
     }
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct PlatformEventPlanAddedSubscription {
+    pub kind: PlanSubscriptionKind,
+    pub price: Price,
+    pub expires_in: Option<u16>,
 }

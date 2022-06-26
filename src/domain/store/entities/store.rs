@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::commons::{HasId, HasItems, HasNestedGroups, HasNestedGroupsWithItems};
-use crate::domain::store::entities::{Page, Platform, Product};
+use crate::domain::store::entities::{Page, Platform, Product, Seller};
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Store {
@@ -12,6 +12,7 @@ pub struct Store {
     pub slug: String,
     pub attributes: Value,
     pub is_archived: bool,
+    pub seller: Seller,
     pub pages: Vec<Page>,
     pub unpaged_products: Vec<Product>,
 }

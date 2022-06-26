@@ -21,6 +21,13 @@ pub struct AddStoreCommand {
     pub platform_id: String,
     pub name: String,
     pub attributes: Value,
+    pub seller: AddStoreCommandSeller,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
+pub struct AddStoreCommandSeller {
+    pub name: String,
+    pub attributes: Value,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]

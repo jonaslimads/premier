@@ -5,8 +5,9 @@ use cqrs_es::Aggregate;
 
 use crate::application::platform::commands::PlatformCommand;
 use crate::application::platform::services::PlatformServices;
-use crate::commons::HasNestedGroups;
-use crate::domain::platform::entities::{Category, Platform};
+use crate::commons::{HasItems, HasNestedGroups};
+use crate::domain::platform::entities::{Category, Plan, PlanSubscription, Platform};
+use crate::domain::platform::events::PlatformEventPlanAddedSubscription;
 use crate::domain::platform::{PlatformError, PlatformEvent};
 
 #[async_trait]
@@ -34,6 +35,22 @@ impl Aggregate for Platform {
                 name: command.name,
                 attributes: command.attributes,
             }],
+            PlatformCommand::UpdatePlatform(command) => {
+                vec![PlatformEvent::PlatformUpdated {
+                    name: command.name,
+                    attributes: command.attributes,
+                }]
+            }
+            PlatformCommand::AddPlan(command) => vec![PlatformEvent::PlanAdded {
+                name: command.name,
+                order: command.order,
+                attributes: command.attributes,
+                subscriptions: command
+                    .subscriptions
+                    .into_iter()
+                    .map(|s| PlatformEventPlanAddedSubscription::from(s))
+                    .collect(),
+            }],
             PlatformCommand::AddCategory(command) => vec![PlatformEvent::CategoryAdded {
                 category_id: command.category_id,
                 name: command.name,
@@ -45,14 +62,6 @@ impl Aggregate for Platform {
                 vec![PlatformEvent::ProductCategorized {
                     category_id: command.category_id,
                     product_id: command.product_id,
-                }]
-            }
-            PlatformCommand::UpdatePlatformName(command) => {
-                vec![PlatformEvent::PlatformNameUpdated { name: command.name }]
-            }
-            PlatformCommand::UpdatePlatformAttributes(command) => {
-                vec![PlatformEvent::PlatformAttributesUpdated {
-                    attributes: command.attributes,
                 }]
             }
         })
@@ -69,6 +78,28 @@ impl Aggregate for Platform {
                 self.name = name;
                 self.attributes = attributes;
             }
+            PlatformEvent::PlatformUpdated { name, attributes } => {
+                if let Some(name) = name {
+                    self.name = name.clone();
+                }
+                if let Some(attributes) = attributes {
+                    self.attributes = attributes.clone();
+                }
+            }
+            PlatformEvent::PlanAdded {
+                name,
+                order,
+                attributes,
+                subscriptions,
+            } => self.add_item(Plan::new(
+                name,
+                order,
+                attributes,
+                subscriptions
+                    .into_iter()
+                    .map(|s| PlanSubscription::from(s))
+                    .collect(),
+            )),
             PlatformEvent::CategoryAdded {
                 category_id,
                 name,
@@ -85,8 +116,6 @@ impl Aggregate for Platform {
             } => {
                 // self.page_product(category_id, product_id)
             }
-            PlatformEvent::PlatformNameUpdated { name } => self.name = name,
-            PlatformEvent::PlatformAttributesUpdated { attributes } => self.attributes = attributes,
         }
     }
 }

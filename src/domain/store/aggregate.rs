@@ -91,7 +91,9 @@ mod aggregate_tests {
     use cqrs_es::test::TestFramework;
     use serde_json::json;
 
-    use crate::application::store::commands::{AddStoreCommand, StoreCommand};
+    use crate::application::store::commands::{
+        AddStoreCommand, AddStoreCommandSeller, StoreCommand,
+    };
     use crate::application::store::services::{CouldNotFindIdError, StoreApi, StoreServices};
     use crate::domain::store::{Store, StoreEvent};
 
@@ -110,6 +112,10 @@ mod aggregate_tests {
             platform_id: "".to_string(),
             name: "".to_string(),
             attributes: json!({}),
+            seller: AddStoreCommandSeller {
+                name: "".to_string(),
+                attributes: json!({}),
+            },
         });
 
         let services = StoreServices::new(Box::new(MockStoreServices::default()));

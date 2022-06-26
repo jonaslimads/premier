@@ -3,7 +3,7 @@ use std::sync::Arc;
 use async_graphql::{Context, ErrorExtensions, Object, Result, SimpleObject};
 
 use crate::application::platform::queries::platform::{
-    PlatformQuery, PlatformView, PlatformViewCategory,
+    PlatformQuery, PlatformView, PlatformViewCategory, PlatformViewPlan,
 };
 use crate::application::product::queries::product::{ProductQuery, ProductView, ProductViewReview};
 use crate::application::store::queries::store_products::{
@@ -25,8 +25,13 @@ impl QueryRoot {
     }
 
     async fn platform(&self, context: &Context<'_>) -> Result<Option<PlatformView>> {
-        let query = context.data_unchecked::<Arc<PlatformQuery>>();
-        Ok(query.load("0").await.clone())
+        Ok(query::<PlatformQuery>(context).load("0").await.clone())
+    }
+
+    async fn plans(&self, context: &Context<'_>) -> Result<Connection<PlatformViewPlan>> {
+        let platform = self.platform(context).await?;
+        let plans = platform.map(|p| p.plans);
+        query_vec(plans, None, None, None, None).await
     }
 
     async fn categories(
@@ -39,9 +44,8 @@ impl QueryRoot {
         first: Option<i32>,
         last: Option<i32>,
     ) -> Result<Connection<PlatformViewCategory>> {
-        let query = context.data_unchecked::<Arc<PlatformQuery>>();
-        let platform = query.load("0").await.clone();
-        let mut categories = platform.map(|v| v.categories);
+        let platform = self.platform(context).await?;
+        let mut categories = platform.map(|p| p.categories);
         sort!(categories, sort, name);
         query_vec(categories, after, before, first, last).await
     }

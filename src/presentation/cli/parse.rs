@@ -8,8 +8,7 @@ use crate::application::order::commands::{
     OrderCommand, UnarchiveOrderCommand,
 };
 use crate::application::platform::commands::{
-    AddCategoryCommand, AddPlatformCommand, PlatformCommand, UpdatePlatformAttributesCommand,
-    UpdatePlatformNameCommand,
+    AddCategoryCommand, AddPlanCommand, AddPlatformCommand, PlatformCommand, UpdatePlatformCommand,
 };
 use crate::application::product::commands::{
     AddProductCommand, AddProductVariantCommand, AddProductVariantStockCommand,
@@ -118,9 +117,9 @@ pub async fn parse() -> Result<Option<String>> {
                 order => AddOrderProduct,
                 order => AddOrderProductVariant,
                 platform => AddPlatform,
+                platform => UpdatePlatform,
+                platform => AddPlan,
                 platform => AddCategory,
-                platform => UpdatePlatformName,
-                platform => UpdatePlatformAttributes,
                 product => AddProduct,
                 product => ArchiveProduct,
                 product => UnarchiveProduct,

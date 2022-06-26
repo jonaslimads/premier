@@ -1,7 +1,7 @@
 pub type VecComparator<T> = Option<Box<dyn Fn(&T, &T) -> bool>>;
 
-pub trait HasId {
-    fn id(&self) -> String;
+pub trait HasId<T = String> {
+    fn id(&self) -> T;
 }
 
 pub trait HasItems<I>
