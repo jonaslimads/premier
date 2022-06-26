@@ -29,6 +29,7 @@ impl View<Platform> for PlatformView {
                     self.attributes = attributes.clone();
                 }
             }
+            PlatformEvent::PlanSubscriptionUpdated { .. } => {}
             PlatformEvent::PlanAdded {
                 name,
                 order,
@@ -83,6 +84,14 @@ pub struct PlatformView {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
+pub struct PlatformViewPlan {
+    pub name: String,
+    pub order: u16,
+    pub attributes: Value,
+    pub subscriptions: Vec<PlatformViewPlanSubscription>,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
 pub struct PlatformViewCategory {
     pub id: String,
     pub name: String,
@@ -97,14 +106,6 @@ pub struct PlatformViewCategory {
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
 pub struct PlatformViewCampaign {
     pub id: String,
-}
-
-#[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
-pub struct PlatformViewPlan {
-    pub name: String,
-    pub order: u16,
-    pub attributes: Value,
-    pub subscriptions: Vec<PlatformViewPlanSubscription>,
 }
 
 impl PlatformViewPlan {

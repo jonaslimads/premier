@@ -15,6 +15,10 @@ event_enum! {
             name: String,
             attributes: Value,
         },
+        SellerUpdated {
+            name: String,
+            attributes: Value,
+        },
         StoreArchived {},
         StoreUnarchived {},
         PageAdded {

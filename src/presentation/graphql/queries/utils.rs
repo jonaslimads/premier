@@ -7,12 +7,11 @@ use async_graphql::{ObjectType, OutputType, Result, SimpleObject};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use crate::commons::Filter;
 use crate::presentation::PresentationError;
 
 pub type Connection<Node, EdgeFields = EmptyFields> =
     BaseConnection<usize, Node, ConnectionFields, EdgeFields>;
-
-pub type Filter = Option<HashMap<String, String>>;
 
 pub type Ordering = Option<Vec<OrderBy>>;
 

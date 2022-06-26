@@ -9,10 +9,10 @@ use crate::application::product::queries::product::{ProductQuery, ProductView, P
 use crate::application::store::queries::store_products::{
     StoreProductsQuery, StoreProductsView, StoreProductsViewPage, StoreProductsViewProduct,
 };
-use crate::commons::{HasNestedGroups, HasNestedGroupsWithItems};
+use crate::commons::{Filter, HasFilter, HasNestedGroups, HasNestedGroupsWithItems};
 use crate::presentation::graphql::queries::utils::{
     empty_connection, get_opt_string_from_filter, get_opt_vec_from_filter, get_string_from_filter,
-    query_vec, query_vec_with_additional_fields, sort, Connection, Filter, Ordering,
+    query_vec, query_vec_with_additional_fields, sort, Connection, Ordering,
 };
 use crate::presentation::PresentationError;
 
@@ -84,7 +84,7 @@ impl QueryRoot {
             None => query.load_all().await,
         }
         .map_err(|error| PresentationError::from(error).extend())?;
-        let mut stores = Some(stores);
+        let mut stores = Some(StoreProductsView::filter(stores, &filter));
         sort!(stores, sort, name);
         query_vec(stores, after, before, first, last).await
     }

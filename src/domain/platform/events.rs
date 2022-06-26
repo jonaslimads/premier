@@ -26,6 +26,12 @@ event_enum! {
             attributes: Value,
             subscriptions: Vec<PlatformEventPlanAddedSubscription>,
         },
+        PlanSubscriptionUpdated {
+            plan_name: String,
+            kind: PlanSubscriptionKind,
+            price: Price,
+            expires_in: Option<u16>,
+        },
         CategoryAdded {
             category_id: String,
             name: String,

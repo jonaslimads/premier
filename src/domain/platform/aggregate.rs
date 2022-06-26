@@ -100,6 +100,21 @@ impl Aggregate for Platform {
                     .map(|s| PlanSubscription::from(s))
                     .collect(),
             )),
+            PlatformEvent::PlanSubscriptionUpdated {
+                plan_name,
+                kind,
+                price,
+                expires_in,
+            } => {
+                if let Some(plan) = self.get_item_mut(plan_name) {
+                    for subscription in plan.subscriptions.iter_mut() {
+                        if subscription.kind == kind {
+                            subscription.price = price;
+                            subscription.expires_in = expires_in;
+                        }
+                    }
+                }
+            }
             PlatformEvent::CategoryAdded {
                 category_id,
                 name,

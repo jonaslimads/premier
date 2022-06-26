@@ -4,7 +4,7 @@ use cqrs_es::Aggregate;
 use crate::application::store::commands::StoreCommand;
 use crate::application::store::services::StoreServices;
 use crate::commons::{HasNestedGroups, HasNestedGroupsWithItems};
-use crate::domain::store::entities::{Page, Platform, Store};
+use crate::domain::store::entities::{Page, Platform, Seller, Store};
 use crate::domain::store::{StoreError, StoreEvent};
 
 #[async_trait]
@@ -27,12 +27,18 @@ impl Aggregate for Store {
         _services: &Self::Services,
     ) -> Result<Vec<Self::Event>, Self::Error> {
         Ok(match command {
-            StoreCommand::AddStore(command) => vec![StoreEvent::StoreAdded {
-                id: command.id,
-                platform_id: command.platform_id,
-                name: command.name,
-                attributes: command.attributes,
-            }],
+            StoreCommand::AddStore(command) => vec![
+                StoreEvent::StoreAdded {
+                    id: command.id,
+                    platform_id: command.platform_id,
+                    name: command.name,
+                    attributes: command.attributes,
+                },
+                StoreEvent::SellerUpdated {
+                    name: command.seller.name,
+                    attributes: command.seller.attributes,
+                },
+            ],
             StoreCommand::ArchiveStore(_) => vec![StoreEvent::StoreArchived {}],
             StoreCommand::UnarchiveStore(_) => vec![StoreEvent::StoreUnarchived {}],
             StoreCommand::AddPage(command) => vec![StoreEvent::PageAdded {
@@ -62,6 +68,9 @@ impl Aggregate for Store {
                 self.name = name;
                 self.attributes = attributes;
                 self.is_archived = false;
+            }
+            StoreEvent::SellerUpdated { name, attributes } => {
+                self.seller = Seller::new(name, attributes)
             }
             StoreEvent::StoreArchived {} => self.is_archived = true,
             StoreEvent::StoreUnarchived {} => self.is_archived = false,
