@@ -1,5 +1,6 @@
 use async_graphql::SimpleObject;
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use cqrs_es::{EventEnvelope, Query, View};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -7,7 +8,8 @@ use serde_json::Value;
 use crate::application::store::services::StoreServices;
 use crate::application::BaseQuery;
 use crate::commons::{
-    Filter, HasFilter, HasId, HasItems, HasNestedGroups, HasNestedGroupsWithItems,
+    Filter, HasFilter, HasId, HasItems, HasNestedGroups, HasNestedGroupsWithItems, OutputPrice,
+    Price, SubscriptionPlanKind,
 };
 use crate::domain::store::events::StoreEvent;
 use crate::domain::store::Store;
@@ -51,6 +53,21 @@ impl View<Store> for StoreProductsView {
             } => {
                 self.group(page_id.clone(), product_id.clone());
             }
+            StoreEvent::PlanSubscribed {
+                name,
+                attributes,
+                kind,
+                price,
+                expires_on,
+            } => {
+                self.plan = StoreProductsViewPlan::new(
+                    name.clone(),
+                    attributes.clone(),
+                    kind.clone(),
+                    price.clone(),
+                    expires_on.clone(),
+                );
+            }
         }
     }
 }
@@ -75,6 +92,7 @@ pub struct StoreProductsView {
     pub attributes: Value,
     pub is_archived: bool,
     pub seller: StoreProductsViewSeller,
+    pub plan: StoreProductsViewPlan,
     pub pages: Vec<StoreProductsViewPage>,
     pub unpaged_products: Vec<StoreProductsViewProduct>,
 }
@@ -83,6 +101,40 @@ pub struct StoreProductsView {
 pub struct StoreProductsViewSeller {
     pub name: String,
     pub attributes: Value,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
+pub struct StoreProductsViewPlan {
+    pub name: String,
+    pub attributes: Value,
+    pub subscription: StoreProductsViewSubscriptionPlan,
+}
+
+impl StoreProductsViewPlan {
+    pub fn new(
+        name: String,
+        attributes: Value,
+        kind: SubscriptionPlanKind,
+        price: Price,
+        expires_on: Option<DateTime<Utc>>,
+    ) -> Self {
+        Self {
+            attributes,
+            name,
+            subscription: StoreProductsViewSubscriptionPlan {
+                kind,
+                price: OutputPrice::from(price),
+                expires_on,
+            },
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
+pub struct StoreProductsViewSubscriptionPlan {
+    pub kind: SubscriptionPlanKind,
+    pub price: OutputPrice,
+    pub expires_on: Option<DateTime<Utc>>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]

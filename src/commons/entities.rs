@@ -1,4 +1,4 @@
-use async_graphql::{Enum, InputObject};
+use async_graphql::{Enum, InputObject, SimpleObject};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Deserialize, Enum, Eq, PartialEq, Serialize)]
@@ -14,14 +14,14 @@ impl Default for Currency {
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Enum, Eq, PartialEq, Serialize)]
-pub enum PlanSubscriptionKind {
+pub enum SubscriptionPlanKind {
     Free,
     Trial,
     Monthly,
     Annual,
 }
 
-impl Default for PlanSubscriptionKind {
+impl Default for SubscriptionPlanKind {
     fn default() -> Self {
         Self::Monthly
     }
@@ -31,4 +31,19 @@ impl Default for PlanSubscriptionKind {
 pub struct Price {
     pub currency: Currency,
     pub amount: u32,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
+pub struct OutputPrice {
+    pub currency: Currency,
+    pub amount: u32,
+}
+
+impl From<Price> for OutputPrice {
+    fn from(price: Price) -> Self {
+        Self {
+            currency: price.currency,
+            amount: price.amount,
+        }
+    }
 }

@@ -4,7 +4,7 @@ use cqrs_es::Aggregate;
 use crate::application::store::commands::StoreCommand;
 use crate::application::store::services::StoreServices;
 use crate::commons::{HasNestedGroups, HasNestedGroupsWithItems};
-use crate::domain::store::entities::{Page, Platform, Seller, Store};
+use crate::domain::store::entities::{Page, Plan, Platform, Seller, Store};
 use crate::domain::store::{StoreError, StoreEvent};
 
 #[async_trait]
@@ -52,6 +52,13 @@ impl Aggregate for Store {
                 page_id: command.page_id,
                 product_id: command.product_id,
             }],
+            StoreCommand::SubscribeToPlan(command) => vec![StoreEvent::PlanSubscribed {
+                name: command.name,
+                attributes: command.attributes,
+                kind: command.kind,
+                price: command.price,
+                expires_on: command.expires_on,
+            }],
         })
     }
 
@@ -86,6 +93,15 @@ impl Aggregate for Store {
                 product_id,
             } => {
                 self.group(page_id, product_id);
+            }
+            StoreEvent::PlanSubscribed {
+                name,
+                attributes,
+                kind,
+                price,
+                expires_on,
+            } => {
+                self.plan = Plan::new(name, attributes, kind, price, expires_on);
             }
         }
     }

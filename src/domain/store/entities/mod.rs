@@ -5,7 +5,7 @@ mod product;
 mod seller;
 mod store;
 
-pub use crate::commons::PlanSubscriptionKind;
+pub use crate::commons::SubscriptionPlanKind;
 pub use page::Page;
 pub use plan::Plan;
 pub use platform::Platform;

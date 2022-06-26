@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::super::events::PlatformEventPlanAddedSubscription;
-use crate::commons::{HasId, PlanSubscriptionKind, Price};
+use crate::commons::{HasId, Price, SubscriptionPlanKind};
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 
@@ -10,7 +10,7 @@ pub struct Plan {
     pub name: String,
     pub order: u16,
     pub attributes: Value,
-    pub subscriptions: Vec<PlanSubscription>,
+    pub subscriptions: Vec<SubscriptionPlan>,
 }
 
 impl Plan {
@@ -18,7 +18,7 @@ impl Plan {
         name: String,
         order: u16,
         attributes: Value,
-        subscriptions: Vec<PlanSubscription>,
+        subscriptions: Vec<SubscriptionPlan>,
     ) -> Self {
         Self {
             name,
@@ -30,13 +30,13 @@ impl Plan {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
-pub struct PlanSubscription {
-    pub kind: PlanSubscriptionKind,
+pub struct SubscriptionPlan {
+    pub kind: SubscriptionPlanKind,
     pub price: Price,
     pub expires_in: Option<u16>,
 }
 
-impl From<PlatformEventPlanAddedSubscription> for PlanSubscription {
+impl From<PlatformEventPlanAddedSubscription> for SubscriptionPlan {
     fn from(event: PlatformEventPlanAddedSubscription) -> Self {
         Self {
             kind: event.kind,

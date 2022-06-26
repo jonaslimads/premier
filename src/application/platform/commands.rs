@@ -2,7 +2,7 @@ use async_graphql::InputObject;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::commons::{PlanSubscriptionKind, Price};
+use crate::commons::{Price, SubscriptionPlanKind};
 use crate::domain::default_platform_id;
 use crate::domain::platform::events::PlatformEventPlanAddedSubscription;
 
@@ -62,7 +62,7 @@ pub struct CategorizeProductCommand {
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
 pub struct AddPlanCommandSubscription {
-    pub kind: PlanSubscriptionKind,
+    pub kind: SubscriptionPlanKind,
     pub price: Price,
     pub expires_in: Option<u16>,
 }

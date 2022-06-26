@@ -6,7 +6,7 @@ use cqrs_es::Aggregate;
 use crate::application::platform::commands::PlatformCommand;
 use crate::application::platform::services::PlatformServices;
 use crate::commons::{HasItems, HasNestedGroups};
-use crate::domain::platform::entities::{Category, Plan, PlanSubscription, Platform};
+use crate::domain::platform::entities::{Category, Plan, Platform, SubscriptionPlan};
 use crate::domain::platform::events::PlatformEventPlanAddedSubscription;
 use crate::domain::platform::{PlatformError, PlatformEvent};
 
@@ -97,10 +97,10 @@ impl Aggregate for Platform {
                 attributes,
                 subscriptions
                     .into_iter()
-                    .map(|s| PlanSubscription::from(s))
+                    .map(|s| SubscriptionPlan::from(s))
                     .collect(),
             )),
-            PlatformEvent::PlanSubscriptionUpdated {
+            PlatformEvent::SubscriptionPlanUpdated {
                 plan_name,
                 kind,
                 price,

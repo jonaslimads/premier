@@ -4,7 +4,9 @@ use cqrs_es::{EventEnvelope, View};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::commons::{Currency, HasId, HasItems, HasNestedGroups, PlanSubscriptionKind};
+use crate::commons::{
+    Currency, HasId, HasItems, HasNestedGroups, OutputPrice, SubscriptionPlanKind,
+};
 use crate::domain::platform::events::{PlatformEvent, PlatformEventPlanAddedSubscription};
 use crate::domain::platform::Platform;
 use crate::infrastructure::ViewRepository;
@@ -29,7 +31,7 @@ impl View<Platform> for PlatformView {
                     self.attributes = attributes.clone();
                 }
             }
-            PlatformEvent::PlanSubscriptionUpdated { .. } => {}
+            PlatformEvent::SubscriptionPlanUpdated { .. } => {}
             PlatformEvent::PlanAdded {
                 name,
                 order,
@@ -42,7 +44,7 @@ impl View<Platform> for PlatformView {
                 subscriptions
                     .clone()
                     .into_iter()
-                    .map(|s| PlatformViewPlanSubscription::from(s))
+                    .map(|s| PlatformViewSubscriptionPlan::from(s))
                     .collect(),
             )),
             PlatformEvent::CategoryAdded {
@@ -88,7 +90,7 @@ pub struct PlatformViewPlan {
     pub name: String,
     pub order: u16,
     pub attributes: Value,
-    pub subscriptions: Vec<PlatformViewPlanSubscription>,
+    pub subscriptions: Vec<PlatformViewSubscriptionPlan>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
@@ -113,7 +115,7 @@ impl PlatformViewPlan {
         name: String,
         order: u16,
         attributes: Value,
-        subscriptions: Vec<PlatformViewPlanSubscription>,
+        subscriptions: Vec<PlatformViewSubscriptionPlan>,
     ) -> Self {
         Self {
             name,
@@ -125,23 +127,17 @@ impl PlatformViewPlan {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
-pub struct PlatformViewPlanSubscription {
-    pub kind: PlanSubscriptionKind,
-    pub price: PlatformViewPlanSubscriptionPrice,
+pub struct PlatformViewSubscriptionPlan {
+    pub kind: SubscriptionPlanKind,
+    pub price: OutputPrice,
     pub expires_in: Option<u16>,
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Serialize, SimpleObject)]
-pub struct PlatformViewPlanSubscriptionPrice {
-    pub currency: Currency,
-    pub amount: u32,
-}
-
-impl From<PlatformEventPlanAddedSubscription> for PlatformViewPlanSubscription {
+impl From<PlatformEventPlanAddedSubscription> for PlatformViewSubscriptionPlan {
     fn from(subscription: PlatformEventPlanAddedSubscription) -> Self {
         Self {
             kind: subscription.kind,
-            price: PlatformViewPlanSubscriptionPrice {
+            price: OutputPrice {
                 currency: subscription.price.currency,
                 amount: subscription.price.amount,
             },

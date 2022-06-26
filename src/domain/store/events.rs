@@ -1,7 +1,10 @@
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::fmt::Debug;
 
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+
+use crate::commons::{Price, SubscriptionPlanKind};
 use crate::domain::{default_platform_id, event_enum, skip_default_platform_id};
 
 event_enum! {
@@ -32,6 +35,13 @@ event_enum! {
         ProductPaged {
             page_id: String,
             product_id: String,
+        },
+        PlanSubscribed {
+            name: String,
+            attributes: Value,
+            kind: SubscriptionPlanKind,
+            price: Price,
+            expires_on: Option<DateTime<Utc>>,
         },
     }
 }

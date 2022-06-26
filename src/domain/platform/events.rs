@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::commons::{PlanSubscriptionKind, Price};
+use crate::commons::{Price, SubscriptionPlanKind};
 use crate::domain::event_enum;
 
 event_enum! {
@@ -26,9 +26,9 @@ event_enum! {
             attributes: Value,
             subscriptions: Vec<PlatformEventPlanAddedSubscription>,
         },
-        PlanSubscriptionUpdated {
+        SubscriptionPlanUpdated {
             plan_name: String,
-            kind: PlanSubscriptionKind,
+            kind: SubscriptionPlanKind,
             price: Price,
             expires_in: Option<u16>,
         },
@@ -49,7 +49,7 @@ event_enum! {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct PlatformEventPlanAddedSubscription {
-    pub kind: PlanSubscriptionKind,
+    pub kind: SubscriptionPlanKind,
     pub price: Price,
     pub expires_in: Option<u16>,
 }
