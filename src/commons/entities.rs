@@ -1,30 +1,14 @@
 use async_graphql::{Enum, InputObject, SimpleObject};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Deserialize, Enum, Eq, PartialEq, Serialize)]
-pub enum Currency {
-    BRL,
-    USD,
-}
 
-impl Default for Currency {
-    fn default() -> Self {
-        Self::USD
-    }
-}
-
-#[derive(Clone, Copy, Debug, Deserialize, Enum, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Enum, Eq, PartialEq, Serialize)]
 pub enum SubscriptionPlanKind {
     Free,
     Trial,
+    #[default]
     Monthly,
     Annual,
-}
-
-impl Default for SubscriptionPlanKind {
-    fn default() -> Self {
-        Self::Monthly
-    }
 }
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Eq, InputObject, PartialEq, Serialize)]
@@ -46,4 +30,30 @@ impl From<Price> for OutputPrice {
             amount: price.amount,
         }
     }
+}
+
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, Enum, Eq, PartialEq, Serialize)]
+pub enum Currency {
+    AED,
+    AUD,
+    BRL,
+    CAD,
+    CHF,
+    CNY,
+    EUR,
+    GBP,
+    HKD,
+    IDR,
+    INR,
+    JPY,
+    KRW,
+    MXN,
+    RUB,
+    SAR,
+    SGD,
+    THB,
+    TWD,
+    #[default]
+    USD,
 }

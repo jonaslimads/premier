@@ -5,8 +5,7 @@ use crate::application::product::services::ProductServices;
 use crate::application::store::queries::store_products::{
     StoreProductsView, StoreProductsViewProduct,
 };
-use crate::application::BaseQuery;
-use crate::commons::HasNestedGroupsWithItems;
+use crate::commons::{HasNestedGroupsWithItems, BaseQuery};
 use crate::domain::product::events::ProductEvent;
 use crate::domain::product::Product;
 use crate::infrastructure::ViewRepository;

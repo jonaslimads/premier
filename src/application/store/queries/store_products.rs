@@ -6,10 +6,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::application::store::services::StoreServices;
-use crate::application::BaseQuery;
 use crate::commons::{
     Filter, HasFilter, HasId, HasItems, HasNestedGroups, HasNestedGroupsWithItems, OutputPrice,
     Price, SubscriptionPlanKind,
+    BaseQuery,
 };
 use crate::domain::store::events::StoreEvent;
 use crate::domain::store::Store;

@@ -1,6 +1,8 @@
 #![forbid(unsafe_code)]
 #![deny(clippy::all)]
 
+use std::process::{ExitCode, Termination};
+
 mod application;
 mod commons;
 mod domain;
@@ -9,17 +11,33 @@ mod presentation;
 
 use crate::presentation::cli;
 
+
 #[tokio::main]
-async fn main() -> Result<(), presentation::PresentationError> {
+async fn main() -> OperationExitCode {
     env_logger::init();
 
     match cli::parse().await {
-        Err(error) => Err(error),
+        Err(error) => {
+            println!("{}", error);
+            OperationExitCode::Failure
+        }
         Ok(Some(result)) => {
             println!("{}", result);
-            Ok(())
+            OperationExitCode::Success
         }
-        Ok(None) => Ok(()),
+        Ok(None) => OperationExitCode::Success,
+    }
+}
+
+#[repr(u8)]
+pub enum OperationExitCode {
+    Success = 0,
+    Failure = 1,
+}
+
+impl Termination for OperationExitCode {
+    fn report(self) -> ExitCode {
+        ExitCode::from(self as u8)
     }
 }
 
