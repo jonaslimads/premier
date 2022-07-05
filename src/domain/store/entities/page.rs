@@ -9,7 +9,7 @@ pub struct Page {
     pub name: String,
     pub slug: String,
     pub order: u16,
-    pub is_archived: bool,
+    pub is_published: bool,
     pub children: Vec<Page>,
     pub products: Vec<Product>,
 }
@@ -21,7 +21,7 @@ impl Page {
             name,
             slug,
             order,
-            is_archived: false,
+            is_published: false,
             children: Vec::new(),
             products: Vec::new(),
         }

@@ -12,7 +12,7 @@ pub struct Order {
     pub state: OrderState,
     pub products: Vec<Product>,
     pub created_on: DateTime<Utc>,
-    pub is_archived: bool,
+    pub is_published: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -120,7 +120,7 @@ impl Default for Order {
             // total_net_amount: Default::default(),
             products: Default::default(),
             created_on: Utc::now(),
-            is_archived: false,
+            is_published: false,
         }
     }
 }

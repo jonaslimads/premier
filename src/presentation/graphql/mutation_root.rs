@@ -4,22 +4,22 @@ use async_graphql::{Context, ErrorExtensions, Object, Result};
 use paste::paste;
 
 use crate::application::order::commands::{
-    AddOrderCommand, AddOrderProductCommand, AddOrderProductVariantCommand, ArchiveOrderCommand,
-    OrderCommand, UnarchiveOrderCommand,
+    AddOrderCommand, AddOrderProductCommand, AddOrderProductVariantCommand, OrderCommand,
+    PublishOrderCommand, UnpublishOrderCommand,
 };
 use crate::application::platform::commands::{
     AddCategoryCommand, AddPlanCommand, AddPlatformCommand, PlatformCommand, UpdatePlatformCommand,
 };
 use crate::application::product::commands::{
     AddProductCommand, AddProductVariantCommand, AddProductVariantStockCommand,
-    AllocateProductStockVariantCommand, ArchiveProductCommand, CategorizeProductCommand,
+    AllocateProductStockVariantCommand, CategorizeProductCommand,
     DeallocateProductStockVariantCommand, PageProductCommand, ProductCommand,
-    ReallocateProductStockVariantCommand, RemoveProductVariantStockCommand,
-    UnarchiveProductCommand, UpdateProductAttachmentsCommand, UpdateProductAttributesCommand,
+    PublishProductCommand, ReallocateProductStockVariantCommand, RemoveProductVariantStockCommand,
+    UnpublishProductCommand, UpdateProductAttachmentsCommand, UpdateProductAttributesCommand,
     UpdateProductDescriptionCommand, UpdateProductNameCommand, UpdateProductSlugCommand,
 };
 use crate::application::store::commands::{
-    AddPageCommand, AddStoreCommand, ArchiveStoreCommand, StoreCommand, UnarchiveStoreCommand,
+    AddPageCommand, AddStoreCommand, PublishStoreCommand, StoreCommand, UnpublishStoreCommand,
 };
 use crate::domain::order::Order;
 use crate::domain::platform::Platform;
@@ -120,8 +120,8 @@ macro_rules! mutation_root {
 pub struct MutationRoot;
 
 mutation_root!(
-    order => ArchiveOrder,
-    order => UnarchiveOrder,
+    order => PublishOrder,
+    order => UnpublishOrder,
     order => AddOrderProduct,
     order => AddOrderProductVariant,
     platform => AddPlatform,
@@ -129,8 +129,8 @@ mutation_root!(
     platform => AddPlan,
     platform => AddCategory,
     product => AddProduct,
-    product => ArchiveProduct,
-    product => UnarchiveProduct,
+    product => PublishProduct,
+    product => UnpublishProduct,
     product => CategorizeProduct,
     product => PageProduct,
     product => UpdateProductName,
@@ -145,7 +145,7 @@ mutation_root!(
     product => ReallocateProductStockVariant,
     product => DeallocateProductStockVariant,
     store => AddStore,
-    store => ArchiveStore,
-    store => UnarchiveStore,
+    store => PublishStore,
+    store => UnpublishStore,
     store => AddPage
 );

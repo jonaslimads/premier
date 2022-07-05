@@ -11,7 +11,7 @@ pub struct Store {
     pub name: String,
     pub slug: String,
     pub attributes: Value,
-    pub is_archived: bool,
+    pub is_published: bool,
     pub seller: Seller,
     pub plan: Plan,
     pub pages: Vec<Page>,

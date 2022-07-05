@@ -8,7 +8,7 @@ pub struct Category {
     pub name: String,
     pub slug: String,
     pub order: u16,
-    pub is_archived: bool,
+    pub is_published: bool,
     pub children: Vec<Category>,
 }
 
@@ -19,7 +19,7 @@ impl Category {
             name,
             slug,
             order,
-            is_archived: false,
+            is_published: false,
             children: Vec::new(),
         }
     }

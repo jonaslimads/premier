@@ -10,8 +10,8 @@ use crate::domain::default_platform_id;
 #[derive(Debug, Serialize, Deserialize)]
 pub enum StoreCommand {
     AddStore(AddStoreCommand),
-    ArchiveStore(ArchiveStoreCommand),
-    UnarchiveStore(UnarchiveStoreCommand),
+    PublishStore(PublishStoreCommand),
+    UnpublishStore(UnpublishStoreCommand),
     AddPage(AddPageCommand),
     PageProduct(PageProductCommand),
     SubscribeToPlan(SubscribeToPlanCommand),
@@ -25,21 +25,16 @@ pub struct AddStoreCommand {
     pub name: String,
     pub attributes: Value,
     pub seller: AddStoreCommandSeller,
+    pub plan: AddStoreCommandPlan,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
-pub struct AddStoreCommandSeller {
-    pub name: String,
-    pub attributes: Value,
-}
-
-#[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
-pub struct ArchiveStoreCommand {
+pub struct PublishStoreCommand {
     pub id: String,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
-pub struct UnarchiveStoreCommand {
+pub struct UnpublishStoreCommand {
     pub id: String,
 }
 
@@ -63,6 +58,21 @@ pub struct PageProductCommand {
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
 pub struct SubscribeToPlanCommand {
     pub id: String,
+    pub name: String,
+    pub attributes: Value,
+    pub kind: SubscriptionPlanKind,
+    pub price: Price,
+    pub expires_on: Option<DateTime<Utc>>,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
+pub struct AddStoreCommandSeller {
+    pub name: String,
+    pub attributes: Value,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
+pub struct AddStoreCommandPlan {
     pub name: String,
     pub attributes: Value,
     pub kind: SubscriptionPlanKind,

@@ -41,8 +41,8 @@ impl Aggregate for Product {
                 attachments: command.attachments,
                 attributes: command.attributes,
             }],
-            ProductCommand::ArchiveProduct(_) => vec![ProductEvent::ProductArchived {}],
-            ProductCommand::UnarchiveProduct(_) => vec![ProductEvent::ProductUnarchived {}],
+            ProductCommand::PublishProduct(_) => vec![ProductEvent::ProductPublished {}],
+            ProductCommand::UnpublishProduct(_) => vec![ProductEvent::ProductUnpublished {}],
             ProductCommand::CategorizeProduct(command) => vec![ProductEvent::ProductCategorized {
                 platform_id: command.platform_id,
                 category_id: command.category_id,
@@ -184,10 +184,10 @@ impl Aggregate for Product {
                 self.currency = currency;
                 self.attachments = attachments;
                 self.attributes = attributes;
-                self.is_archived = false;
+                self.is_published = false;
             }
-            ProductEvent::ProductArchived {} => self.is_archived = true,
-            ProductEvent::ProductUnarchived {} => self.is_archived = false,
+            ProductEvent::ProductPublished {} => self.is_published = true,
+            ProductEvent::ProductUnpublished {} => self.is_published = false,
             ProductEvent::ProductCategorized {
                 platform_id: _,
                 category_id,

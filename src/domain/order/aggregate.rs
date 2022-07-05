@@ -31,8 +31,8 @@ impl Aggregate for Order {
                 id: command.id,
                 buyer_id: command.buyer_id,
             }],
-            OrderCommand::ArchiveOrder(_) => vec![OrderEvent::OrderArchived {}],
-            OrderCommand::UnarchiveOrder(_) => vec![OrderEvent::OrderUnarchived {}],
+            OrderCommand::PublishOrder(_) => vec![OrderEvent::OrderPublished {}],
+            OrderCommand::UnpublishOrder(_) => vec![OrderEvent::OrderUnpublished {}],
             OrderCommand::AddOrderProduct(command) => {
                 if self.get_product(command.product_id.clone()).is_some() {
                     Err(OrderError::ProductExistent)?;
@@ -73,8 +73,8 @@ impl Aggregate for Order {
                 self.id = id;
                 self.buyer = Buyer::new(buyer_id);
             }
-            OrderEvent::OrderArchived {} => self.is_archived = true,
-            OrderEvent::OrderUnarchived {} => self.is_archived = false,
+            OrderEvent::OrderPublished {} => self.is_published = true,
+            OrderEvent::OrderUnpublished {} => self.is_published = false,
             OrderEvent::OrderProductAdded {
                 product_id,
                 store_id,

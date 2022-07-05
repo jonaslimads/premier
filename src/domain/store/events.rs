@@ -22,8 +22,8 @@ event_enum! {
             name: String,
             attributes: Value,
         },
-        StoreArchived {},
-        StoreUnarchived {},
+        StorePublished {},
+        StoreUnpublished {},
         PageAdded {
             page_id: String,
             name: String,

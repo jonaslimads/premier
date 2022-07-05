@@ -27,7 +27,7 @@ impl View<Store> for StoreProductsView {
                 self.id = id.clone();
                 self.name = name.clone();
                 self.attributes = attributes.clone();
-                self.is_archived = false;
+                self.is_published = false;
             }
             StoreEvent::SellerUpdated { name, attributes } => {
                 self.seller = StoreProductsViewSeller {
@@ -35,8 +35,8 @@ impl View<Store> for StoreProductsView {
                     attributes: attributes.clone(),
                 }
             }
-            StoreEvent::StoreArchived {} => self.is_archived = true,
-            StoreEvent::StoreUnarchived {} => self.is_archived = false,
+            StoreEvent::StorePublished {} => self.is_published = true,
+            StoreEvent::StoreUnpublished {} => self.is_published = false,
             StoreEvent::PageAdded {
                 page_id,
                 name,
@@ -90,7 +90,7 @@ pub struct StoreProductsView {
     pub id: String,
     pub name: String,
     pub attributes: Value,
-    pub is_archived: bool,
+    pub is_published: bool,
     pub seller: StoreProductsViewSeller,
     pub plan: StoreProductsViewPlan,
     pub pages: Vec<StoreProductsViewPage>,
@@ -119,8 +119,8 @@ impl StoreProductsViewPlan {
         expires_on: Option<DateTime<Utc>>,
     ) -> Self {
         Self {
-            attributes,
             name,
+            attributes,
             subscription: StoreProductsViewSubscriptionPlan {
                 kind,
                 price: OutputPrice::from(price),
@@ -145,7 +145,7 @@ pub struct StoreProductsViewPage {
     #[graphql(skip)]
     pub order: u16,
     #[graphql(skip)]
-    pub is_archived: bool,
+    pub is_published: bool,
     pub children: Vec<StoreProductsViewPage>,
     pub products: Vec<StoreProductsViewProduct>,
 }
@@ -159,7 +159,7 @@ pub struct StoreProductsViewProduct {
     pub price: u32,
     pub attachments: Vec<String>,
     pub attributes: Value,
-    pub is_archived: bool,
+    pub is_published: bool,
 }
 
 impl StoreProductsViewPage {
@@ -169,7 +169,7 @@ impl StoreProductsViewPage {
             name,
             slug,
             order,
-            is_archived: false,
+            is_published: false,
             children: Vec::new(),
             products: Vec::new(),
         }

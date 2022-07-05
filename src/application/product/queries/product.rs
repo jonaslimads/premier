@@ -21,7 +21,7 @@ pub struct ProductView {
     pub price: u32,
     pub attachments: Vec<String>,
     pub attributes: Value,
-    pub is_archived: bool,
+    pub is_published: bool,
     pub reviews: Vec<ProductViewReview>,
 }
 
@@ -84,13 +84,13 @@ impl View<Product> for ProductView {
                 self.price = 0;
                 self.attachments = attachments.clone();
                 self.attributes = attributes.clone();
-                self.is_archived = false;
+                self.is_published = false;
             }
-            ProductEvent::ProductArchived {} => {
-                self.is_archived = true;
+            ProductEvent::ProductPublished {} => {
+                self.is_published = true;
             }
-            ProductEvent::ProductUnarchived {} => {
-                self.is_archived = false;
+            ProductEvent::ProductUnpublished {} => {
+                self.is_published = false;
             }
             ProductEvent::ProductPaged {
                 store_id: _,

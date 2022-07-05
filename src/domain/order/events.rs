@@ -12,8 +12,8 @@ event_enum! {
             id: String,
             buyer_id: String,
         },
-        OrderArchived {},
-        OrderUnarchived {},
+        OrderPublished {},
+        OrderUnpublished {},
         OrderProductAdded {
             product_id: String,
             store_id: String,

@@ -33,16 +33,16 @@ impl View<Product> for StoreProductsView {
                 price: 0,
                 attachments: attachments.clone(),
                 attributes: attributes.clone(),
-                is_archived: false,
+                is_published: false,
             }),
-            ProductEvent::ProductArchived {} => {
+            ProductEvent::ProductPublished {} => {
                 self.mutate_item(event.aggregate_id.clone(), &mut |product| {
-                    product.is_archived = true;
+                    product.is_published = true;
                 });
             }
-            ProductEvent::ProductUnarchived {} => {
+            ProductEvent::ProductUnpublished {} => {
                 self.mutate_item(event.aggregate_id.clone(), &mut |product| {
-                    product.is_archived = false;
+                    product.is_published = false;
                 });
             }
             ProductEvent::ProductNameUpdated { name } => {

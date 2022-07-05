@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Default, Deserialize, Enum, Eq, PartialEq, Serialize)]
 pub enum SubscriptionPlanKind {
     Free,
-    Trial,
     #[default]
+    Trial,
     Monthly,
     Annual,
 }

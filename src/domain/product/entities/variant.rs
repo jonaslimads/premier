@@ -11,7 +11,7 @@ pub struct Variant {
     pub price: u32,
     pub attachments: Vec<String>,
     pub attributes: Value,
-    pub is_archived: bool,
+    pub is_published: bool,
     pub stocks: Vec<Stock>,
     pub payment_options: Vec<PaymentOption>,
 }

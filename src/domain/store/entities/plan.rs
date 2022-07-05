@@ -4,7 +4,7 @@ use serde_json::Value;
 
 use crate::commons::{Price, SubscriptionPlanKind};
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 
 pub struct Plan {
     pub name: String,
@@ -28,6 +28,16 @@ impl Plan {
                 price,
                 expires_on,
             },
+        }
+    }
+}
+
+impl Default for Plan {
+    fn default() -> Self {
+        Self {
+            name: "Trial".to_string(),
+            attributes: Value::default(),
+            subscription: SubscriptionPlan::default(),
         }
     }
 }

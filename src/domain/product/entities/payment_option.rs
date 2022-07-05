@@ -7,5 +7,5 @@ pub struct PaymentOption {
     pub amount: u32,
     pub discount: u8,
     pub installments: Option<u8>,
-    pub is_archived: bool,
+    pub is_published: bool,
 }

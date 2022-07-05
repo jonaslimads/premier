@@ -25,8 +25,8 @@ event_enum! {
             attachments: Vec<String>,
             attributes: Value,
         },
-        ProductArchived {},
-        ProductUnarchived {},
+        ProductPublished {},
+        ProductUnpublished {},
         ProductCategorized {
             #[serde(default = "default_platform_id")]
             #[serde(skip_serializing_if = "skip_default_platform_id")]

@@ -7,8 +7,8 @@ use crate::domain::default_platform_id;
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ProductCommand {
     AddProduct(AddProductCommand),
-    ArchiveProduct(ArchiveProductCommand),
-    UnarchiveProduct(UnarchiveProductCommand),
+    PublishProduct(PublishProductCommand),
+    UnpublishProduct(UnpublishProductCommand),
     CategorizeProduct(CategorizeProductCommand),
     PageProduct(PageProductCommand),
     UpdateProductName(UpdateProductNameCommand),
@@ -41,12 +41,12 @@ pub struct AddProductCommand {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
-pub struct ArchiveProductCommand {
+pub struct PublishProductCommand {
     pub id: String,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
-pub struct UnarchiveProductCommand {
+pub struct UnpublishProductCommand {
     pub id: String,
 }
 

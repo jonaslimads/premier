@@ -38,9 +38,16 @@ impl Aggregate for Store {
                     name: command.seller.name,
                     attributes: command.seller.attributes,
                 },
+                StoreEvent::PlanSubscribed {
+                    name: command.plan.name,
+                    attributes: command.plan.attributes,
+                    kind: command.plan.kind,
+                    price: command.plan.price,
+                    expires_on: command.plan.expires_on,
+                },
             ],
-            StoreCommand::ArchiveStore(_) => vec![StoreEvent::StoreArchived {}],
-            StoreCommand::UnarchiveStore(_) => vec![StoreEvent::StoreUnarchived {}],
+            StoreCommand::PublishStore(_) => vec![StoreEvent::StorePublished {}],
+            StoreCommand::UnpublishStore(_) => vec![StoreEvent::StoreUnpublished {}],
             StoreCommand::AddPage(command) => vec![StoreEvent::PageAdded {
                 page_id: command.page_id,
                 name: command.name,
@@ -74,13 +81,13 @@ impl Aggregate for Store {
                 self.platform = Platform::new(platform_id);
                 self.name = name;
                 self.attributes = attributes;
-                self.is_archived = false;
+                self.is_published = false;
             }
             StoreEvent::SellerUpdated { name, attributes } => {
                 self.seller = Seller::new(name, attributes)
             }
-            StoreEvent::StoreArchived {} => self.is_archived = true,
-            StoreEvent::StoreUnarchived {} => self.is_archived = false,
+            StoreEvent::StorePublished {} => self.is_published = true,
+            StoreEvent::StoreUnpublished {} => self.is_published = false,
             StoreEvent::PageAdded {
                 page_id,
                 name,
@@ -117,7 +124,7 @@ mod aggregate_tests {
     use serde_json::json;
 
     use crate::application::store::commands::{
-        AddStoreCommand, AddStoreCommandSeller, StoreCommand,
+        AddStoreCommand, AddStoreCommandPlan, AddStoreCommandSeller, StoreCommand,
     };
     use crate::application::store::services::{CouldNotFindIdError, StoreApi, StoreServices};
     use crate::domain::store::{Store, StoreEvent};
@@ -137,10 +144,8 @@ mod aggregate_tests {
             platform_id: "".to_string(),
             name: "".to_string(),
             attributes: json!({}),
-            seller: AddStoreCommandSeller {
-                name: "".to_string(),
-                attributes: json!({}),
-            },
+            seller: AddStoreCommandSeller::default(),
+            plan: AddStoreCommandPlan::default(),
         });
 
         let services = StoreServices::new(Box::new(MockStoreServices::default()));

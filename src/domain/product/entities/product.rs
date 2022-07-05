@@ -16,7 +16,7 @@ pub struct Product {
     pub currency: String,
     pub attachments: Vec<String>,
     pub attributes: Value,
-    pub is_archived: bool,
+    pub is_published: bool,
     pub variants: Vec<Variant>,
 }
 

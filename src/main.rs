@@ -54,7 +54,7 @@ impl Termination for OperationExitCode {
 // select * from store_event ve order by json_extract(metadata, '$.s') desc;
 
 // ./target/debug/premier command store AddStore '{"id":"931763989041","name":"My Store","attributes":{}}'
-// ./target/debug/premier command store ArchiveStore '{"id":"931763989041"}'
-// ./target/debug/premier command store UnarchiveStore '{"id":"931763989041"}'
+// ./target/debug/premier command store PublishStore '{"id":"931763989041"}'
+// ./target/debug/premier command store UnpublishStore '{"id":"931763989041"}'
 // ./target/debug/premier command product AddProduct '{"id":"582696182822","store_id":"931763989041","name":"USB stick","description":"","slug":"usb-stick","currency":"USD","attachments":[],"attributes":{}}'
 // ./target/debug/premier command product AddProductVariant '{"id":"582696182822","variant_id":"931763989041","sku":"USB-1","price":1200,"attachments":[],"attributes":{}}'

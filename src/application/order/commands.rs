@@ -5,8 +5,8 @@ use serde_json::Value;
 #[derive(Debug, Serialize, Deserialize)]
 pub enum OrderCommand {
     AddOrder(AddOrderCommand),
-    ArchiveOrder(ArchiveOrderCommand),
-    UnarchiveOrder(UnarchiveOrderCommand),
+    PublishOrder(PublishOrderCommand),
+    UnpublishOrder(UnpublishOrderCommand),
     AddOrderProduct(AddOrderProductCommand),
     AddOrderProductVariant(AddOrderProductVariantCommand),
 }
@@ -18,12 +18,12 @@ pub struct AddOrderCommand {
 }
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
-pub struct ArchiveOrderCommand {
+pub struct PublishOrderCommand {
     pub id: String,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, InputObject, PartialEq, Serialize)]
-pub struct UnarchiveOrderCommand {
+pub struct UnpublishOrderCommand {
     pub id: String,
 }
 

@@ -101,7 +101,7 @@ pub struct PlatformViewCategory {
     #[graphql(skip)]
     pub order: u16,
     #[graphql(skip)]
-    pub is_archived: bool,
+    pub is_published: bool,
     pub children: Vec<PlatformViewCategory>,
 }
 
@@ -153,7 +153,7 @@ impl PlatformViewCategory {
             name,
             slug,
             order,
-            is_archived: false,
+            is_published: false,
             children: Vec::new(),
         }
     }
